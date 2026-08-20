@@ -337,6 +337,7 @@ const SCHEMA = [
     "Orleans","Sandwich","Provincetown","Truro","Wellfleet","Yarmouth","Nantucket","Martha's Vineyard",
     "BCSO","METRO LEC","SEMLEC","NEMLEC","CEMLEC","Federal Agency","State Police","Other"]},
   {id:"req_agency_other", t:"text", l:"Requesting agency — specify", sub:1, showIf:{f:"req_agency",eq:"Other"}},
+  {id:"req_oic", t:"text", l:"Requesting agency OIC", ph:"Rank and name"},
   {id:"prep_time", t:"single", l:"Time for preparation", o:[
     "None — emergency activation","0–4 hours","4–12 hours","12+ hours"]},
   {id:"act_type", t:"multi", l:"Type of activation", o:[
@@ -867,7 +868,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-08-19a";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-08-20a";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
