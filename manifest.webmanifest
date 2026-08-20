@@ -1,0 +1,18 @@
+{
+  "name": "CCRLEC SWAT — Post-Activation Report",
+  "short_name": "PAR",
+  "description": "Post-activation reporting for Cape Cod Regional Law Enforcement Council SWAT. Works with no signal. All data stays on the device.",
+  "id": "/ccrlec-par/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0F0D",
+  "theme_color": "#0B0F0D",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

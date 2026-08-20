@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0B0F0D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PAR">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>CCRLEC SWAT — Post-Activation Report</title>
+<style>
+:root{
+  --bg:#0B0F0D;
+  --panel:#131916;
+  --panel-2:#1A221E;
+  --line:#27332C;
+  --line-hot:#36463B;
+  --ink:#E4EBE5;
+  --ink-dim:#8B9C90;
+  --ink-faint:#5F6E64;
+  --od:#7FA860;        /* olive drab — primary */
+  --od-deep:#2F4028;
+  --brass:#C9A24A;     /* secondary / warnings */
+  --rust:#C25A3E;      /* destructive */
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --tap:46px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--sans);
+  font-size:16px;line-height:1.45;
+  padding-bottom:env(safe-area-inset-bottom);
+  overscroll-behavior-y:none;
+}
+button{font-family:inherit;font-size:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input,textarea,select{font-family:inherit;font-size:16px}
+
+/* ---------- header ---------- */
+.hdr{
+  position:sticky;top:0;z-index:40;background:rgba(11,15,13,.93);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  padding:calc(env(safe-area-inset-top) + 10px) 14px 0;
+}
+.hdr-row{display:flex;align-items:center;gap:10px}
+.hdr-title{flex:1;min-width:0}
+.hdr-title b{display:block;font-size:14px;font-weight:700;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-title span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-faint)}
+.iconbtn{
+  width:38px;height:38px;border:1px solid var(--line);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;background:var(--panel);
+  font-size:16px;line-height:1;flex:none
+}
+.iconbtn:active{background:var(--panel-2)}
+
+/* section number strip */
+.strip{display:flex;gap:6px;overflow-x:auto;padding:10px 0 9px;scrollbar-width:none}
+.strip::-webkit-scrollbar{display:none}
+.tab{
+  flex:none;display:flex;align-items:center;gap:7px;padding:6px 11px;border-radius:7px;
+  border:1px solid var(--line);background:var(--panel);
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)
+}
+.tab.on{border-color:var(--od);color:var(--ink);background:var(--od-deep)}
+.tab .dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);flex:none}
+.tab .dot.part{background:var(--brass)}
+.tab .dot.full{background:var(--od)}
+
+/* ---------- sections ---------- */
+main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
+.sec{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin-bottom:12px;overflow:hidden}
+.sec-hd{display:flex;align-items:center;gap:11px;width:100%;padding:14px;text-align:left}
+.sec-no{
+  font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--od);
+  border:1px solid var(--od-deep);border-radius:5px;padding:3px 6px;background:#101a0f;flex:none
+}
+.sec-nm{flex:1;font-size:14px;font-weight:650;letter-spacing:.03em;text-transform:uppercase}
+.sec-ct{font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.06em}
+.sec-cv{font-size:12px;color:var(--ink-faint);transition:transform .18s}
+.sec.open .sec-cv{transform:rotate(90deg)}
+.sec-bd{display:none;padding:2px 14px 16px;border-top:1px solid var(--line)}
+.sec.open .sec-bd{display:block}
+
+/* ---------- fields ---------- */
+.f{padding:14px 0;border-bottom:1px solid rgba(39,51,44,.55)}
+.f:last-child{border-bottom:none}
+.f-lb{
+  display:block;font-family:var(--mono);font-size:10px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-dim);margin-bottom:9px
+}
+.f-lb em{font-style:normal;color:var(--brass)}
+.f.sub{margin-left:12px;padding-left:12px;border-left:2px solid var(--od-deep)}
+.f-hint{font-size:11.5px;color:var(--ink-faint);margin-top:7px}
+
+.ti,.ta{
+  width:100%;background:#0E1411;border:1px solid var(--line);border-radius:9px;
+  color:var(--ink);padding:11px 12px;min-height:var(--tap);outline:none
+}
+.ti:focus,.ta:focus{border-color:var(--od);box-shadow:0 0 0 2px rgba(127,168,96,.16)}
+.ta{min-height:120px;resize:vertical;line-height:1.5}
+.ta.tall{min-height:220px}
+.row2{display:flex;gap:9px}
+.row2>*{flex:1;min-width:0}
+
+.calcbox{
+  display:inline-flex;align-items:center;min-height:var(--tap);padding:10px 15px;
+  border:1px dashed var(--line-hot);border-radius:9px;background:#0E1411;
+  font-family:var(--mono);font-size:14px;letter-spacing:.05em;color:var(--brass)
+}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  min-height:var(--tap);padding:9px 13px;border:1px solid var(--line);border-radius:9px;
+  background:#0E1411;color:var(--ink-dim);font-size:14px;display:flex;align-items:center;gap:7px
+}
+.chip:active{transform:scale(.98)}
+.chip.on{background:var(--od-deep);border-color:var(--od);color:#F0F6EC;font-weight:600}
+.chip.on::before{content:"▪";color:var(--od);font-size:11px}
+.chip.neg.on{background:#3A1F17;border-color:var(--rust);color:#F6E3DD}
+.chip.neg.on::before{color:var(--rust)}
+.chip.add{border-style:dashed;color:var(--ink-faint)}
+
+/* ---------- signature ---------- */
+.sigwrap{border:1px solid var(--line);border-radius:9px;background:#0E1411;overflow:hidden}
+.sigpad{display:block;width:100%;height:170px;touch-action:none;background:repeating-linear-gradient(0deg,#0E1411,#0E1411 41px,#141b17 41px,#141b17 42px)}
+.sigbar{display:flex;justify-content:space-between;align-items:center;padding:8px 11px;border-top:1px solid var(--line)}
+.sigbar span{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+.linkbtn{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);padding:6px 2px}
+
+/* ---------- next / footer bar ---------- */
+.nextbtn{
+  width:100%;margin-top:16px;min-height:var(--tap);border:1px solid var(--line-hot);
+  border-radius:9px;background:var(--panel-2);color:var(--ink-dim);
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase
+}
+.bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;gap:8px;
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(11,15,13,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-top:1px solid var(--line)
+}
+.bar button{
+  flex:1;min-height:var(--tap);border-radius:9px;border:1px solid var(--line);background:var(--panel);
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink)
+}
+.bar button.pri{background:var(--od-deep);border-color:var(--od);color:#EAF3E3;font-weight:600}
+.bar button:active{opacity:.75}
+
+/* ---------- sheet / modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:60;display:none}
+.scrim.on{display:block}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:61;max-height:86vh;overflow-y:auto;
+  background:var(--panel);border-top:1px solid var(--line-hot);
+  border-radius:16px 16px 0 0;padding:8px 14px calc(20px + env(safe-area-inset-bottom));
+  transform:translateY(100%);transition:transform .22s ease;max-width:760px;margin:0 auto
+}
+.sheet.on{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--line-hot);margin:6px auto 14px}
+.sheet h3{margin:0 0 4px;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.sheet p.note{margin:0 0 14px;font-size:12px;color:var(--ink-faint)}
+.mrow{
+  display:flex;align-items:center;gap:11px;width:100%;padding:13px 2px;
+  border-bottom:1px solid rgba(39,51,44,.55);text-align:left
+}
+.mrow:last-of-type{border-bottom:none}
+.mrow .ic{width:22px;text-align:center;font-size:15px;flex:none}
+.mrow .tx{flex:1;min-width:0}
+.mrow .tx b{display:block;font-size:14px;font-weight:600}
+.mrow .tx i{display:block;font-style:normal;font-size:11.5px;color:var(--ink-faint)}
+.mrow.danger .tx b{color:var(--rust)}
+
+.buildline{
+  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  margin-top:16px;padding-top:12px;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)
+}
+.buildline .ready{color:var(--od)}
+.buildline .stale{color:var(--brass)}
+
+.rlist{display:flex;flex-direction:column;gap:7px;margin:4px 0 14px}
+.ritem{display:flex;gap:7px;align-items:center}
+.ritem .ti{flex:1}
+.del{width:var(--tap);height:var(--tap);flex:none;border:1px solid var(--line);border-radius:9px;color:var(--rust);display:flex;align-items:center;justify-content:center}
+.savelist{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.saveitem{display:flex;gap:7px;align-items:stretch}
+.saveitem>button:first-child{
+  flex:1;text-align:left;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#0E1411
+}
+.saveitem b{display:block;font-size:14px}
+.saveitem i{display:block;font-style:normal;font-family:var(--mono);font-size:10px;color:var(--ink-faint);letter-spacing:.06em}
+.empty{font-size:12.5px;color:var(--ink-faint);padding:14px 0;text-align:center}
+
+.toast{
+  position:fixed;left:50%;bottom:96px;transform:translate(-50%,14px);z-index:80;
+  background:var(--panel-2);border:1px solid var(--line-hot);border-radius:9px;
+  padding:10px 16px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;max-width:88vw;text-align:center
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- print ---------- */
+#printview{display:none}
+@media print{
+  @page{size:letter;margin:.5in}
+  body{background:#fff;color:#000;font-size:10.5pt}
+  .hdr,main,.bar,.scrim,.sheet,.toast{display:none !important}
+  #printview{display:block;font-family:"Times New Roman",Times,serif}
+  .p-hd{text-align:center;border-bottom:2px solid #000;padding-bottom:6pt;margin-bottom:10pt}
+  .p-hd h1{font-size:14pt;margin:0}
+  .p-hd h2{font-size:12pt;margin:2pt 0 0;font-weight:normal}
+  .p-hd .meta{font-size:8.5pt;margin-top:4pt;font-family:Arial,sans-serif}
+  .p-sec{margin:0 0 9pt;break-inside:avoid}
+  .p-sec h3{
+    font-family:Arial,sans-serif;font-size:9pt;letter-spacing:.08em;text-transform:uppercase;
+    background:#e8e8e8;border:1px solid #000;padding:3pt 5pt;margin:0 0 5pt
+  }
+  .p-f{display:flex;gap:8pt;padding:2.5pt 0;border-bottom:1px dotted #999;break-inside:avoid}
+  .p-f .k{width:2.15in;flex:none;font-family:Arial,sans-serif;font-size:8.5pt;text-transform:uppercase;letter-spacing:.02em}
+  .p-f .v{flex:1;font-weight:bold}
+  .p-narr{white-space:pre-wrap;border:1px solid #000;padding:6pt;min-height:1.2in}
+  .p-sig{display:flex;gap:24pt;align-items:flex-end;margin-top:14pt;break-inside:avoid}
+  .p-sig .box{flex:1}
+  .p-sig img{max-height:.75in;display:block}
+  .p-sig .rule{border-bottom:1px solid #000;height:.78in;display:flex;align-items:flex-end}
+  .p-sig .cap{font-family:Arial,sans-serif;font-size:8pt;text-transform:uppercase;padding-top:3pt}
+  .p-ft{margin-top:12pt;border-top:1px solid #000;padding-top:4pt;font-family:Arial,sans-serif;font-size:7.5pt;display:flex;justify-content:space-between}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-row">
+    <button class="iconbtn" id="btnRoster" aria-label="Team roster">☰</button>
+    <div class="hdr-title">
+      <b id="hdrOp">Post-Activation Report</b>
+      <span>CCRLEC SWAT · <i id="hdrSaved" style="font-style:normal">not saved</i></span>
+    </div>
+    <button class="iconbtn" id="btnMenu" aria-label="Menu">⋯</button>
+  </div>
+  <nav class="strip" id="strip"></nav>
+</header>
+
+<main id="form"></main>
+
+<div class="bar">
+  <button id="btnSaveAs">Save report</button>
+  <button id="btnShare">Share JSON</button>
+  <button class="pri" id="btnPrint">Print / PDF</button>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- menu sheet -->
+<div class="sheet" id="sheetMenu">
+  <div class="grab"></div>
+  <h3>Report actions</h3>
+  <p class="note">Everything stays on this device. Nothing is uploaded.</p>  <button class="mrow" data-act="open"><span class="ic">📂</span><span class="tx"><b>Open saved report</b><i>Load a report saved on this device</i></span></button>
+  <button class="mrow" data-act="saveas"><span class="ic">💾</span><span class="tx"><b>Save report as…</b><i>Keep a named copy you can reopen</i></span></button>
+  <button class="mrow" data-act="share"><span class="ic">📤</span><span class="tx"><b>Share JSON backup</b><i>Send the raw file to yourself or a teammate</i></span></button>
+  <button class="mrow" data-act="import"><span class="ic">📥</span><span class="tx"><b>Import JSON backup</b><i>Replaces what is on screen now</i></span></button>
+  <button class="mrow" data-act="copy"><span class="ic">📋</span><span class="tx"><b>Copy as text</b><i>Paste into email or your RMS narrative</i></span></button>
+  <button class="mrow" data-act="print"><span class="ic">🖨️</span><span class="tx"><b>Print / save as PDF</b><i>Clean report — blank fields are dropped</i></span></button>
+  <button class="mrow" data-act="roster"><span class="ic">👥</span><span class="tx"><b>Team roster</b><i>Names that fill the personnel pickers</i></span></button>
+  <button class="mrow danger" data-act="reset"><span class="ic">🧹</span><span class="tx"><b>Clear this report</b><i>Roster and saved reports are kept</i></span></button>
+  <div class="buildline">
+    <span id="buildStamp">build —</span>
+    <span id="offlineStamp">checking offline copy…</span>
+  </div>
+</div>
+
+<!-- roster sheet -->
+<div class="sheet" id="sheetRoster">
+  <div class="grab"></div>
+  <h3>Team roster</h3>
+  <p class="note">One name per line. The roster survives clearing a report and is shared by every personnel field.</p>
+  <div class="rlist" id="rosterList"></div>
+  <button class="nextbtn" id="rosterAdd" style="margin-top:0">+ Add name</button>
+  <button class="nextbtn" id="rosterDone" style="border-color:var(--od);color:#EAF3E3;background:var(--od-deep)">Done</button>
+</div>
+
+<!-- saves sheet -->
+<div class="sheet" id="sheetSaves">
+  <div class="grab"></div>
+  <h3>Saved reports</h3>
+  <p class="note">Stored in this browser only. Share a JSON backup for anything you need to keep.</p>
+  <div class="savelist" id="savesList"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" accept="application/json,.json" style="display:none">
+<div id="printview"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   SCHEMA — edit here to add / remove / reword any field.
+   types: text | textarea | date | time | number | single | multi | people | sig
+   showIf: {f:'fieldId', eq:'Yes'}  or  {f:'fieldId', has:'Option text'}
+   ============================================================ */
+const CHIEFS = ["Chief Lennon","Chief Considine","Chief of Police of Requesting Agency"];
+
+/* Activation to clear. Rolls past midnight when no clear date is entered. */
+function calcDuration(){
+  const st=data.act_time, et=data.end_time;
+  if(!st || !et) return "";
+  const base = data.act_date || "2000-01-01";
+  const s = new Date(base+"T"+st);
+  let e = new Date((data.end_date||base)+"T"+et);
+  if(isNaN(s)||isNaN(e)) return "";
+  if(!data.end_date && e<s) e = new Date(e.getTime()+86400000);
+  const mins = Math.round((e-s)/60000);
+  if(mins<0) return "check times";
+  const h=Math.floor(mins/60), m=mins%60;
+  return (h?h+" hr ":"")+m+" min";
+}
+
+const SCHEMA = [
+{ id:"activation", name:"Activation", fields:[
+  {id:"op_name",  t:"text", l:"Operation", ph:"Operation name / case number"},
+  {id:"act_date", t:"date", l:"Date of activation"},
+  {id:"act_time", t:"time", l:"Time of activation"},
+  {id:"end_date", t:"date", l:"Date cleared", hint:"Leave blank if the operation cleared the same day."},
+  {id:"end_time", t:"time", l:"Time cleared"},
+  {id:"duration", t:"calc", l:"Total duration", fn:calcDuration},
+  {id:"req_agency", t:"single", l:"Requesting agency", o:[
+    "Barnstable","Bourne","Brewster","Chatham","Dennis","Eastham","Falmouth","Harwich","Mashpee",
+    "Orleans","Sandwich","Provincetown","Truro","Wellfleet","Yarmouth","Nantucket","Martha's Vineyard",
+    "BCSO","METRO LEC","SEMLEC","NEMLEC","CEMLEC","Federal Agency","State Police","Other"]},
+  {id:"req_agency_other", t:"text", l:"Requesting agency — specify", sub:1, showIf:{f:"req_agency",eq:"Other"}},
+  {id:"prep_time", t:"single", l:"Time for preparation", o:[
+    "None — emergency activation","0–4 hours","4–12 hours","12+ hours"]},
+  {id:"act_type", t:"multi", l:"Type of activation", o:[
+    "Arrest warrant — pre-planned","Search warrant — pre-planned",
+    "Arrest warrant — emergency / short notice","Search warrant — emergency / short notice",
+    "Emergency — barricade","Emergency — hostage","Emergency — unknown",
+    "Pre-planned security — public event","Diplomatic protection","Other"]},
+  {id:"act_type_other", t:"text", l:"Type of activation — specify", sub:1, showIf:{f:"act_type",has:"Other"}},
+  {id:"op_location", t:"text", l:"Location", ph:"Town / street"},
+  {id:"warrant", t:"single", l:"Warrant requested or present?", o:["Yes","No"]},
+  {id:"section12", t:"single", l:"Section 12 in effect?", o:["Yes","No"]},
+  {id:"incident_type", t:"multi", l:"Type of incident", o:[
+    "Violent incident — no weapons","Violent incident — weapons","Search warrant — drugs",
+    "Search warrant — other","Arrest warrant","Suicidal person","Hostage situation","Other"]},
+  {id:"incident_type_other", t:"text", l:"Type of incident — specify", sub:1, showIf:{f:"incident_type",has:"Other"}},
+  {id:"matrix_done", t:"single", l:"SWAT Threat Assessment Matrix completed?", o:["Yes","No"]},
+  {id:"matrix_score", t:"number", l:"Matrix score", sub:1, showIf:{f:"matrix_done",eq:"Yes"}}
+]},
+
+{ id:"suspect", name:"Suspect", fields:[
+  {id:"sus_first", t:"text", l:"Suspect first name"},
+  {id:"sus_last",  t:"text", l:"Suspect last name"},
+  {id:"sus_dob",   t:"date", l:"Suspect date of birth"},
+  {id:"crim_hist", t:"single", l:"Suspect criminal history?", o:["Yes","No","Unknown"]},
+  {id:"crim_charges", t:"multi", l:"Prior charges", sub:1, showIf:{f:"crim_hist",eq:"Yes"}, o:[
+    "Drug charges","Non-firearm weapons charges","Firearms charges","Assault and battery",
+    "A&B with a dangerous weapon","Murder / attempted murder","Robbery","Larceny / theft crimes",
+    "Breaking and entering","Motor vehicle offenses","Public order crimes","Other"]},
+  {id:"crim_other", t:"text", l:"Prior charges — specify", sub:1, showIf:{f:"crim_charges",has:"Other"}},
+  {id:"armed", t:"single", l:"Believed to be armed?", o:["Yes","No","Unknown"]},
+  {id:"weapon_type", t:"multi", l:"Weapon type", sub:1, showIf:{f:"armed",eq:"Yes"}, o:[
+    "Handgun","Rifle","Shotgun","Knife / edged weapon","Blunt object","Other"]},
+  {id:"weapon_other", t:"text", l:"Weapon type — specify", sub:1, showIf:{f:"weapon_type",has:"Other"}},
+  {id:"aware", t:"single", l:"Was the suspect aware of police presence?", o:["Yes","No","Unknown"]}
+]},
+
+{ id:"location", name:"Location", fields:[
+  {id:"loc_addr", t:"text", l:"Address", ph:"Street, town"},
+  {id:"loc_type", t:"multi", l:"Location type", o:[
+    "Single family residence","Multi family residence","Apartment","Business / commercial",
+    "Motor vehicle","Boat","Open air / wooded area"]},
+  {id:"fortified", t:"single", l:"Was the location fortified?", o:["Yes","No","Unknown"]},
+  {id:"fort_type", t:"multi", l:"Type of fortification", sub:1, showIf:{f:"fortified",eq:"Yes"}, o:[
+    "Reinforced door / entry","Covered or blocked windows","Other"]},
+  {id:"fort_other", t:"text", l:"Fortification — specify", sub:1, showIf:{f:"fort_type",has:"Other"}},
+  {id:"surveil", t:"single", l:"Video / audio surveillance", o:["Yes","No","Unknown"]},
+  {id:"occupants", t:"multi", l:"Occupants", o:[
+    "Suspect only","Children (0–12)","Teenagers (12–18)","Adults (18+)","Elderly (60+)",
+    "Dogs","Cats","Other animals","Unknown"]}
+]},
+
+{ id:"personnel", name:"Personnel & equipment", fields:[
+  {id:"cmdr",     t:"people", l:"SWAT commander of incident", one:1},
+  {id:"chiefs",   t:"multi",  l:"Control chiefs", o:CHIEFS},
+  {id:"tls",      t:"people", l:"SWAT team leaders"},
+  {id:"ops",      t:"people", l:"SWAT operators"},
+  {id:"tems",     t:"people", l:"TEMS personnel"},
+  {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, extra:["Not used"]},
+  {id:"rook",     t:"single", l:"Rook deployed?", o:["Yes","No"]},
+  {id:"k9",       t:"people", l:"K9 teams", extra:["None"]},
+  {id:"drones",   t:"single", l:"Drones deployed?", o:["Yes","No"]},
+  {id:"drone_type", t:"multi", l:"Drone type", sub:1, showIf:{f:"drones",eq:"Yes"}, o:[
+    "Interior","Exterior / overwatch"]},
+  {id:"drone_op", t:"text", l:"Drone operator", sub:1, showIf:{f:"drones",eq:"Yes"}},
+  {id:"nego",     t:"people", l:"Negotiators", extra:["None"]},
+  {id:"equip",    t:"textarea", l:"Other equipment requested or used",
+    ph:"Breaching tools, ladders, robot, thermal, ballistic shields…"}
+]},
+
+{ id:"execution", name:"Execution & outcome", fields:[
+  {id:"redeploy", t:"single", l:"Redeployment briefing conducted?", o:["Yes","No"]},
+  {id:"resolution", t:"multi", l:"How the operation resolved", o:[
+    "Surrender — no force used","Suspect taken into custody","Section 12 transport",
+    "Forced entry / breach","Suspect located deceased","Suspect not located / not present",
+    "Cancelled or stood down before entry","Scene turned over to requesting agency","Other"]},
+  {id:"resolution_other", t:"text", l:"Resolution — specify", sub:1, showIf:{f:"resolution",has:"Other"}},
+  {id:"devices", t:"single", l:"Chemical or diversionary devices deployed?", o:["Yes","No"]},
+  {id:"device_type", t:"multi", l:"Device type", sub:1, showIf:{f:"devices",eq:"Yes"}, o:[
+    "Diversionary device (NFDD)","CS","OC","Smoke","Less-lethal impact munition","Other"]},
+  {id:"device_other", t:"text", l:"Device type — specify", sub:1, showIf:{f:"device_type",has:"Other"}},
+  {id:"device_detail", t:"textarea", l:"Quantity, deployment point and time", sub:1,
+    showIf:{f:"devices",eq:"Yes"}, ph:"2 × NFDD — front entry — 0412 hrs\n1 × CS — second floor rear window — 0431 hrs"},
+  {id:"device_by", t:"people", l:"Deployed by", sub:1, showIf:{f:"devices",eq:"Yes"}},
+  {id:"bystanders", t:"single", l:"Innocents / bystanders needing to be secured?", o:["Yes","No"]},
+  {id:"uof", t:"single", l:"Use of force reports required?", o:["Yes","No"]},
+  {id:"uof_by", t:"people", l:"Use of force reports by", sub:1, showIf:{f:"uof",eq:"Yes"}},
+  {id:"injuries", t:"single", l:"Injuries to anyone?", o:["Yes","No"]},
+  {id:"injured", t:"multi", l:"Who was injured", sub:1, showIf:{f:"injuries",eq:"Yes"}, o:[
+    "Team member","Suspect","Hostage","Person present","Innocent / bystander","K9"]},
+  {id:"injured_members", t:"people", l:"Team members injured", sub:1, showIf:{f:"injured",has:"Team member"}},
+  {id:"transported", t:"single", l:"Injured party transported to a medical facility?", sub:1,
+    showIf:{f:"injuries",eq:"Yes"}, o:["Yes","No"]},
+  {id:"transport_dest", t:"text", l:"Receiving facility", sub:1, showIf:{f:"transported",eq:"Yes"},
+    ph:"Cape Cod Hospital, Falmouth Hospital, RIH…"},
+  {id:"damage", t:"single", l:"Damage to property?", o:["Yes","No"]},
+  {id:"damage_type", t:"multi", l:"Type of damage", sub:1, showIf:{f:"damage",eq:"Yes"}, o:[
+    "Breaching of doors / windows","Other damage"]},
+  {id:"damage_other", t:"text", l:"Other damage — describe", sub:1, showIf:{f:"damage_type",has:"Other damage"}},
+  {id:"rpt_attached", t:"single", l:"Report completed and attached?", o:["Yes","No"]}
+]},
+
+{ id:"narrative", name:"Narrative", fields:[
+  {id:"narr", t:"textarea", tall:1, l:"Gist of the incident",
+    ph:"How the call came in, what the team did, how it resolved."}
+]},
+
+{ id:"signature", name:"Signature", fields:[
+  {id:"author",   t:"people", l:"Person creating report", one:1},
+  {id:"sig_date", t:"date",   l:"Date signed"},
+  {id:"sig",      t:"sig",    l:"Signature"}
+]}
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const K_DATA="ccrlec_par_current_v1", K_ROSTER="ccrlec_par_roster_v1", K_SAVES="ccrlec_par_saves_v1";
+const FIELD = {}; SCHEMA.forEach(s=>s.fields.forEach(f=>{FIELD[f.id]={...f,sec:s.id};}));
+
+let data   = load(K_DATA, {});
+let roster = load(K_ROSTER, []);
+let saves  = load(K_SAVES, {});
+let openSec = SCHEMA[0].id;
+
+function load(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
+function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
+function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ============================================================
+   VISIBILITY + PROGRESS
+   ============================================================ */
+function visible(f){
+  if(!f.showIf) return true;
+  const v = data[f.showIf.f];
+  if(f.showIf.eq!==undefined) return v===f.showIf.eq;
+  if(f.showIf.has!==undefined) return Array.isArray(v) && v.includes(f.showIf.has);
+  return true;
+}
+function filled(id){
+  const f = FIELD[id];
+  if(f && f.t==="calc") return !!f.fn();
+  const v = data[id];
+  if(Array.isArray(v)) return v.length>0;
+  return v!==undefined && v!==null && String(v).trim()!=="";
+}
+function secProgress(sec){
+  /* calculated fields fill themselves, so they don't count toward the section total */
+  const vis = sec.fields.filter(f=>visible(f) && f.t!=="calc");
+  return { done: vis.filter(f=>filled(f.id)).length, total: vis.length };
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const elForm=document.getElementById("form"), elStrip=document.getElementById("strip");
+
+function render(){
+  elForm.innerHTML = SCHEMA.map((s,i)=>{
+    const p = secProgress(s);
+    return `<section class="sec ${s.id===openSec?"open":""}" data-sec="${s.id}">
+      <button class="sec-hd" data-toggle="${s.id}">
+        <span class="sec-no">${String(i+1).padStart(2,"0")}</span>
+        <span class="sec-nm">${esc(s.name)}</span>
+        <span class="sec-ct">${p.done}/${p.total}</span>
+        <span class="sec-cv">▶</span>
+      </button>
+      <div class="sec-bd">
+        ${s.fields.filter(visible).map(fieldHTML).join("")}
+        ${i<SCHEMA.length-1?`<button class="nextbtn" data-next="${SCHEMA[i+1].id}">Next — ${esc(SCHEMA[i+1].name)} ↓</button>`:""}
+      </div>
+    </section>`;
+  }).join("");
+  renderStrip();
+  document.getElementById("hdrOp").textContent = data.op_name?.trim() || "Post-Activation Report";
+  SCHEMA.forEach(s=>s.fields.forEach(f=>{ if(f.t==="sig" && visible(f)) mountSig(f.id); }));
+}
+
+function renderStrip(){
+  elStrip.innerHTML = SCHEMA.map((s,i)=>{
+    const p=secProgress(s);
+    const cls = p.total&&p.done===p.total ? "full" : p.done ? "part" : "";
+    return `<button class="tab ${s.id===openSec?"on":""}" data-jump="${s.id}">
+      <span class="dot ${cls}"></span>${String(i+1).padStart(2,"0")} ${esc(s.name)}</button>`;
+  }).join("");
+}
+
+function refreshCalcs(){
+  document.querySelectorAll("[data-calc]").forEach(el=>{
+    const f = FIELD[el.dataset.calc]; if(!f || !f.fn) return;
+    el.textContent = f.fn() || "—";
+  });
+}
+
+function fieldHTML(f){
+  const v = data[f.id];
+  const lb = `<label class="f-lb" for="in_${f.id}">${esc(f.l)}</label>`;
+  let body="";
+  if(f.t==="text"||f.t==="date"||f.t==="time"||f.t==="number"){
+    const type = f.t==="text"?"text":f.t;
+    body = `<input class="ti" id="in_${f.id}" type="${type}" data-in="${f.id}"
+             value="${esc(v??"")}" placeholder="${esc(f.ph||"")}"
+             ${f.t==="number"?'inputmode="numeric"':""}>`;
+  } else if(f.t==="textarea"){
+    body = `<textarea class="ta ${f.tall?"tall":""}" id="in_${f.id}" data-in="${f.id}"
+             placeholder="${esc(f.ph||"")}">${esc(v??"")}</textarea>`;
+  } else if(f.t==="single"||f.t==="multi"){
+    const sel = f.t==="single" ? (v?[v]:[]) : (Array.isArray(v)?v:[]);
+    body = `<div class="chips">` + f.o.map(o=>{
+      const on = sel.includes(o);
+      const neg = /^(No|None|Unknown|Not used)\b/.test(o);
+      return `<button class="chip ${on?"on":""} ${neg?"neg":""}" data-chip="${f.id}" data-mode="${f.t}" data-val="${esc(o)}">${esc(o)}</button>`;
+    }).join("") + `</div>`;
+  } else if(f.t==="people"){
+    const sel = Array.isArray(v)?v:(v?[v]:[]);
+    const pool = [...(f.extra||[]), ...roster, ...sel.filter(n=>!roster.includes(n) && !(f.extra||[]).includes(n))];
+    const chips = pool.length ? pool.map(n=>{
+      const on = sel.includes(n);
+      const neg = /^(None|Not used)$/.test(n);
+      return `<button class="chip ${on?"on":""} ${neg?"neg":""}" data-chip="${f.id}"
+        data-mode="${f.one?"single-arr":"multi"}" data-val="${esc(n)}">${esc(n)}</button>`;
+    }).join("") : "";
+    body = `<div class="chips">${chips}
+      <button class="chip add" data-addname="${f.id}" data-one="${f.one?1:0}">+ Name</button></div>` +
+      (roster.length?"":`<div class="f-hint">Roster is empty — add names from the ☰ menu and they will appear in every personnel field.</div>`);
+  } else if(f.t==="calc"){
+    const cv = f.fn();
+    body = `<div class="calcbox" data-calc="${f.id}">${cv?esc(cv):"—"}</div>`;
+  } else if(f.t==="sig"){
+    body = `<div class="sigwrap">
+        <canvas class="sigpad" id="pad_${f.id}"></canvas>
+        <div class="sigbar"><span id="sigst_${f.id}">${v?"Signed":"Sign above"}</span>
+        <button class="linkbtn" data-sigclear="${f.id}">Clear</button></div></div>`;
+  }
+  const hint = f.hint ? `<div class="f-hint">${esc(f.hint)}</div>` : "";
+  return `<div class="f ${f.sub?"sub":""}" data-field="${f.id}">${lb}${body}${hint}</div>`;
+}
+
+/* ============================================================
+   INPUT HANDLING
+   ============================================================ */
+let saveTimer=null;
+function touch(rerender){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    const ok = store(K_DATA,data);
+    const t=new Date();
+    document.getElementById("hdrSaved").textContent = ok
+      ? "saved "+t.toTimeString().slice(0,5)
+      : "storage full — share a backup";
+  },250);
+  if(rerender) render();
+}
+
+elForm.addEventListener("input", e=>{
+  const id = e.target.dataset.in; if(!id) return;
+  data[id] = e.target.value;
+  if(id==="op_name") document.getElementById("hdrOp").textContent = data.op_name.trim()||"Post-Activation Report";
+  refreshCalcs();
+  touch(false);
+  const sec = document.querySelector(`.sec[data-sec="${FIELD[id].sec}"] .sec-ct`);
+  if(sec){ const p=secProgress(SCHEMA.find(s=>s.id===FIELD[id].sec)); sec.textContent=`${p.done}/${p.total}`; renderStrip(); }
+});
+
+elForm.addEventListener("click", e=>{
+  const t = e.target.closest("button"); if(!t) return;
+
+  if(t.dataset.toggle){
+    openSec = (openSec===t.dataset.toggle) ? null : t.dataset.toggle;
+    render(); return;
+  }
+  if(t.dataset.jump || t.dataset.next){
+    openSec = t.dataset.jump || t.dataset.next; render();
+    const el=document.querySelector(`.sec[data-sec="${openSec}"]`);
+    if(el) window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-118,behavior:"smooth"});
+    return;
+  }
+  if(t.dataset.chip){
+    const id=t.dataset.chip, val=t.dataset.val, mode=t.dataset.mode;
+    if(mode==="single"){ data[id] = (data[id]===val)?"":val; }
+    else if(mode==="single-arr"){ data[id] = (Array.isArray(data[id])&&data[id][0]===val)?[]:[val]; }
+    else {
+      const cur = Array.isArray(data[id])?[...data[id]]:[];
+      const i = cur.indexOf(val);
+      if(i>=0) cur.splice(i,1); else cur.push(val);
+      const f=FIELD[id];
+      if(f.extra) f.extra.forEach(x=>{ if(val===x){ cur.length=0; cur.push(x); } else { const j=cur.indexOf(x); if(j>=0) cur.splice(j,1); } });
+      data[id]=cur;
+    }
+    prune(); touch(true); return;
+  }
+  if(t.dataset.addname){
+    const id=t.dataset.addname;
+    const n=(prompt("Name to add for this field only:")||"").trim();
+    if(!n) return;
+    if(t.dataset.one==="1") data[id]=[n];
+    else { const cur=Array.isArray(data[id])?[...data[id]]:[]; if(!cur.includes(n)) cur.push(n); data[id]=cur; }
+    touch(true); return;
+  }
+  if(t.dataset.sigclear){ data[t.dataset.sigclear]=""; touch(true); return; }
+});
+
+/* clear dependent values when a parent answer changes */
+function prune(){
+  SCHEMA.forEach(s=>s.fields.forEach(f=>{ if(!visible(f)) delete data[f.id]; }));
+}
+
+/* ============================================================
+   SIGNATURE PAD
+   ============================================================ */
+function mountSig(id){
+  const c=document.getElementById("pad_"+id); if(!c) return;
+  const x=c.getContext && c.getContext("2d"); if(!x) return;
+  const dpr=window.devicePixelRatio||1;
+  const w=c.clientWidth||600, h=c.clientHeight||170;
+  c.width=w*dpr; c.height=h*dpr;
+  x.scale(dpr,dpr);
+  x.lineWidth=2.2; x.lineCap="round"; x.lineJoin="round"; x.strokeStyle="#E4EBE5";
+  if(data[id]){ const im=new Image(); im.onload=()=>x.drawImage(im,0,0,w,h); im.src=data[id]; }
+  if(c.dataset.wired==="1") return;
+  c.dataset.wired="1";
+  let drawing=false;
+  const pt=e=>{ const r=c.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; };
+  c.addEventListener("pointerdown",e=>{ drawing=true; c.setPointerCapture(e.pointerId);
+    const[a,b]=pt(e); x.beginPath(); x.moveTo(a,b); e.preventDefault(); });
+  c.addEventListener("pointermove",e=>{ if(!drawing) return; const[a,b]=pt(e); x.lineTo(a,b); x.stroke(); e.preventDefault(); });
+  const end=()=>{ if(!drawing) return; drawing=false;
+    data[id]=c.toDataURL("image/png");
+    const st=document.getElementById("sigst_"+id); if(st) st.textContent="Signed";
+    touch(false); };
+  c.addEventListener("pointerup",end); c.addEventListener("pointercancel",end); c.addEventListener("pointerleave",end);
+}
+
+/* ============================================================
+   SHEETS
+   ============================================================ */
+const scrim=document.getElementById("scrim");
+function openSheet(idOrNull){
+  ["sheetMenu","sheetRoster","sheetSaves"].forEach(s=>document.getElementById(s).classList.toggle("on", s===idOrNull));
+  scrim.classList.toggle("on", !!idOrNull);
+}
+scrim.addEventListener("click",()=>openSheet(null));
+document.getElementById("btnMenu").addEventListener("click",()=>openSheet("sheetMenu"));
+document.getElementById("btnRoster").addEventListener("click",()=>{ drawRoster(); openSheet("sheetRoster"); });
+
+document.getElementById("sheetMenu").addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const a=b.dataset.act; openSheet(null);
+  ({ open:()=>{drawSaves();openSheet("sheetSaves");}, saveas:saveAs, share:shareJSON,
+     import:()=>document.getElementById("fileIn").click(), copy:copyText,
+     print:()=>window.print(), roster:()=>{drawRoster();openSheet("sheetRoster");},
+     reset:resetReport })[a]?.();
+});
+
+/* roster editor */
+function drawRoster(){
+  const box=document.getElementById("rosterList");
+  box.innerHTML = roster.length ? roster.map((n,i)=>
+    `<div class="ritem"><input class="ti" data-r="${i}" value="${esc(n)}" placeholder="Last, First — Agency">
+     <button class="del" data-rdel="${i}">✕</button></div>`).join("")
+    : `<div class="empty">No names yet. Add the operators, TLs, medics, handlers and chiefs you activate with.</div>`;
+}
+document.getElementById("rosterList").addEventListener("input",e=>{
+  const i=e.target.dataset.r; if(i===undefined) return;
+  roster[+i]=e.target.value; store(K_ROSTER,roster);
+});
+document.getElementById("rosterList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-rdel]"); if(!b) return;
+  roster.splice(+b.dataset.rdel,1); store(K_ROSTER,roster); drawRoster(); render();
+});
+document.getElementById("rosterAdd").addEventListener("click",()=>{
+  roster.push(""); store(K_ROSTER,roster); drawRoster();
+  const ins=document.querySelectorAll("#rosterList .ti"); ins[ins.length-1]?.focus();
+});
+document.getElementById("rosterDone").addEventListener("click",()=>{
+  roster = roster.map(n=>n.trim()).filter(Boolean);
+  store(K_ROSTER,roster); openSheet(null); render(); toast("Roster updated");
+});
+
+/* saved reports */
+function reportLabel(){
+  const n = (data.op_name||"").trim();
+  return n || (data.act_date ? "Activation "+data.act_date : "Untitled report");
+}
+function saveAs(){
+  const nm=(prompt("Save this report as:", reportLabel())||"").trim(); if(!nm) return;
+  saves[nm]={ savedAt:new Date().toISOString(), data:JSON.parse(JSON.stringify(data)) };
+  store(K_SAVES,saves) ? toast("Saved — "+nm) : toast("Storage full");
+}
+function drawSaves(){
+  const box=document.getElementById("savesList");
+  const keys=Object.keys(saves).sort((a,b)=>(saves[b].savedAt||"").localeCompare(saves[a].savedAt||""));
+  box.innerHTML = keys.length ? keys.map(k=>{
+    const d=new Date(saves[k].savedAt);
+    return `<div class="saveitem"><button data-open="${esc(k)}"><b>${esc(k)}</b>
+      <i>${isNaN(d)?"":d.toLocaleString()}</i></button>
+      <button class="del" data-sdel="${esc(k)}">✕</button></div>`;
+  }).join("") : `<div class="empty">Nothing saved yet. Use “Save report as…”.</div>`;
+}
+document.getElementById("savesList").addEventListener("click",e=>{
+  const o=e.target.closest("[data-open]"), d=e.target.closest("[data-sdel]");
+  if(o){ data=JSON.parse(JSON.stringify(saves[o.dataset.open].data)); openSheet(null);
+         openSec=SCHEMA[0].id; touch(true); toast("Opened — "+o.dataset.open); }
+  if(d){ if(!confirm("Delete “"+d.dataset.sdel+"”?")) return;
+         delete saves[d.dataset.sdel]; store(K_SAVES,saves); drawSaves(); }
+});
+
+function resetReport(){
+  if(!confirm("Clear every field in this report? The roster and saved reports are kept.")) return;
+  data={}; openSec=SCHEMA[0].id; touch(true); window.scrollTo({top:0}); toast("Report cleared");
+}
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+function fname(ext){
+  const base=reportLabel().replace(/[^\w\- ]+/g,"").replace(/\s+/g,"_").slice(0,50);
+  return `CCRLEC_PAR_${base||"report"}_${new Date().toISOString().slice(0,10)}.${ext}`;
+}
+async function shareJSON(){
+  const payload={ app:"CCRLEC SWAT Post-Activation Report", version:1,
+                  exported:new Date().toISOString(), roster, data };
+  const txt=JSON.stringify(payload,null,2);
+  const file=new File([txt],fname("json"),{type:"application/json"});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],title:reportLabel()}); return; }
+    catch(err){ if(err.name==="AbortError") return; }
+  }
+  const url=URL.createObjectURL(new Blob([txt],{type:"application/json"}));
+  const a=document.createElement("a"); a.href=url; a.download=fname("json"); a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+  toast("Backup downloaded");
+}
+document.getElementById("fileIn").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{
+      const p=JSON.parse(r.result);
+      if(!p || typeof p!=="object") throw 0;
+      const hasData   = p.data && typeof p.data==="object" && Object.keys(p.data).length>0;
+      const hasRoster = Array.isArray(p.roster) && p.roster.length>0;
+      if(!hasData && !hasRoster) throw 0;
+
+      /* roster-only file — never disturbs an in-progress report */
+      if(!hasData){
+        if(!confirm("This file holds a roster only ("+p.roster.length+" names). Replace the roster on this device? The report on screen is untouched.")) return;
+        roster=p.roster.map(n=>String(n).trim()).filter(Boolean);
+        store(K_ROSTER,roster); render(); toast("Roster imported"); return;
+      }
+
+      if(!confirm("Import will replace the report currently on screen. Continue?")) return;
+      data=p.data;
+      if(hasRoster && confirm("This backup also contains a roster. Replace the roster on this device?")){
+        roster=p.roster.map(n=>String(n).trim()).filter(Boolean); store(K_ROSTER,roster);
+      }
+      openSec=SCHEMA[0].id; touch(true); toast("Backup imported");
+    }catch(_){ alert("That file is not a Post-Activation Report backup."); } };
+  r.readAsText(f); e.target.value="";
+});
+
+function valueText(f){
+  if(f.t==="calc") return f.fn()||"";
+  const v=data[f.id]; if(!filled(f.id)) return "";
+  if(Array.isArray(v)) return v.join(", ");
+  if(f.t==="date"){ const [y,m,d]=String(v).split("-"); return (y&&m&&d)?`${m}/${d}/${y}`:v; }
+  if(f.t==="time"){ const [H,M]=String(v).split(":"); if(H===undefined) return v;
+    const h=+H, ap=h>=12?"PM":"AM", hh=((h+11)%12)+1; return `${hh}:${M} ${ap} (${H}${M} hrs)`; }
+  return String(v);
+}
+function copyText(){
+  let out=`CCRLEC SWAT — POST-ACTIVATION REPORT\n${reportLabel()}\n${"=".repeat(46)}\n`;
+  SCHEMA.forEach(s=>{
+    const rows=s.fields.filter(f=>visible(f)&&filled(f.id)&&f.t!=="sig");
+    if(!rows.length) return;
+    out+=`\n${s.name.toUpperCase()}\n${"-".repeat(s.name.length)}\n`;
+    rows.forEach(f=> out += f.t==="textarea" ? `${f.l}:\n${valueText(f)}\n` : `${f.l}: ${valueText(f)}\n`);
+  });
+  const done=()=>toast("Copied to clipboard");
+  if(navigator.clipboard?.writeText) navigator.clipboard.writeText(out).then(done,()=>fallbackCopy(out,done));
+  else fallbackCopy(out,done);
+}
+function fallbackCopy(txt,cb){
+  const ta=document.createElement("textarea"); ta.value=txt;
+  ta.style.position="fixed"; ta.style.opacity="0"; document.body.appendChild(ta);
+  ta.select(); try{ document.execCommand("copy"); cb(); }catch(e){ alert("Copy failed — select the text manually."); }
+  document.body.removeChild(ta);
+}
+
+/* print view — only filled fields */
+function buildPrint(){
+  const secs = SCHEMA.map(s=>{
+    if(s.id==="signature") return "";
+    const rows=s.fields.filter(f=>visible(f)&&filled(f.id));
+    if(!rows.length) return "";
+    if(s.id==="narrative")
+      return `<div class="p-sec"><h3>${esc(s.name)}</h3><div class="p-narr">${esc(data.narr||"")}</div></div>`;
+    return `<div class="p-sec"><h3>${esc(s.name)}</h3>` +
+      rows.map(f=>`<div class="p-f"><div class="k">${esc(f.l)}</div><div class="v">${esc(valueText(f))}</div></div>`).join("") +
+      `</div>`;
+  }).join("");
+  const author=[].concat(data.author||[]).join(", ");
+  const sd=FIELD.sig_date?valueText(FIELD.sig_date):"";
+  const sig = `<div class="p-sig">
+      <div class="box"><div class="rule">${data.sig?`<img src="${data.sig}" alt="">`:""}</div>
+        <div class="cap">Signature — ${esc(author||"person creating report")}</div></div>
+      <div class="box" style="max-width:2in"><div class="rule" style="align-items:flex-end">
+        <div style="padding-bottom:3pt">${esc(sd)}</div></div><div class="cap">Date</div></div></div>`;
+  document.getElementById("printview").innerHTML =
+    `<div class="p-hd"><h1>Cape Cod Regional Law Enforcement Council SWAT</h1>
+      <h2>Post-Activation Report</h2>
+      <div class="meta">${esc(reportLabel())}${data.act_date?" · "+esc(valueText(FIELD.act_date)):""}</div></div>
+     ${secs}${sig}
+     <div class="p-ft"><span>CCRLEC SWAT — Post-Activation Report</span>
+       <span>Printed ${new Date().toLocaleString()}</span></div>`;
+}
+window.addEventListener("beforeprint",buildPrint);
+document.getElementById("btnPrint").addEventListener("click",()=>{ buildPrint(); setTimeout(()=>window.print(),60); });
+document.getElementById("btnShare").addEventListener("click",shareJSON);
+document.getElementById("btnSaveAs").addEventListener("click",saveAs);
+
+/* toast */
+let tT=null;
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("on");
+  clearTimeout(tT); tT=setTimeout(()=>el.classList.remove("on"),2000);
+}
+
+/* ============================================================
+   BUILD STAMP + OFFLINE INSTALL
+   ============================================================ */
+const BUILD = "2026-08-19a";   /* bump when publishing so the team can confirm versions */
+document.getElementById("buildStamp").textContent = "build " + BUILD;
+
+const offEl = document.getElementById("offlineStamp");
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").then(reg=>{
+      offEl.textContent = "offline copy ready";
+      offEl.className = "ready";
+      reg.addEventListener("updatefound", ()=>{
+        const nw = reg.installing; if(!nw) return;
+        nw.addEventListener("statechange", ()=>{
+          if(nw.state==="installed" && navigator.serviceWorker.controller){
+            offEl.textContent = "update ready — reopen to apply";
+            offEl.className = "stale";
+            toast("Update ready — close and reopen");
+          }
+        });
+      });
+      reg.update().catch(()=>{});
+    }).catch(()=>{ offEl.textContent = "offline copy unavailable"; });
+  });
+} else {
+  offEl.textContent = "offline copy needs https";
+}
+
+/* boot */
+if(!data.sig_date) data.sig_date=new Date().toISOString().slice(0,10);
+render();
+if(Object.keys(data).length>1) document.getElementById("hdrSaved").textContent="restored";
+let rT=null;
+window.addEventListener("resize",()=>{ clearTimeout(rT); rT=setTimeout(()=>{
+  SCHEMA.forEach(s=>s.fields.forEach(f=>{ if(f.t==="sig"&&visible(f)) mountSig(f.id); }));
+},200); });
+window.addEventListener("beforeunload",()=>store(K_DATA,data));
+</script>
+</body>
+</html>

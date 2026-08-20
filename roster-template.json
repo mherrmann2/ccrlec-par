@@ -1,0 +1,12 @@
+{
+  "app": "CCRLEC SWAT Post-Activation Report",
+  "version": 1,
+  "note": "Roster only. Importing this replaces the names on the device and leaves any report in progress untouched.",
+  "roster": [
+    "Sample, A — Barnstable PD",
+    "Sample, B — Yarmouth PD",
+    "Sample, C — TEMS",
+    "Sample, D — K9"
+  ],
+  "data": {}
+}
