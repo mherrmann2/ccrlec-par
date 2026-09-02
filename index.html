@@ -361,6 +361,7 @@ const SCHEMA = [
     "BCSO","METRO LEC","SEMLEC","NEMLEC","CEMLEC","Federal Agency","State Police","Other"]},
   {id:"req_agency_other", t:"text", l:"Requesting agency — specify", sub:1, showIf:{f:"req_agency",eq:"Other"}},
   {id:"req_oic", t:"text", l:"Requesting agency OIC", ph:"Rank and name"},
+  {id:"req_oic_phone", t:"tel", l:"OIC callback number", ph:"Best number after the operation"},
   {id:"prep_time", t:"single", l:"Time for preparation", o:[
     "None — emergency activation","0–4 hours","4–12 hours","12+ hours"]},
   {id:"act_type", t:"multi", l:"Type of activation", o:[
@@ -458,6 +459,12 @@ const SCHEMA = [
   {id:"device_detail", t:"textarea", l:"Quantity, deployment point and time", sub:1,
     showIf:{f:"devices",eq:"Yes"}, ph:"2 × NFDD — front entry — 0412 hrs\n1 × CS — second floor rear window — 0431 hrs"},
   {id:"device_by", t:"people", l:"Deployed by", sub:1, showIf:{f:"devices",eq:"Yes"}},
+  {id:"shots", t:"single", l:"Were firearms discharged?", o:["Yes","No"]},
+  {id:"shots_by", t:"people", l:"Discharged by", sub:1, showIf:{f:"shots",eq:"Yes"}},
+  {id:"rounds", t:"number", l:"Approximate total rounds fired", sub:1, showIf:{f:"shots",eq:"Yes"}},
+  {id:"shots_detail", t:"textarea", l:"Discharge detail", sub:1, showIf:{f:"shots",eq:"Yes"},
+    ph:"Who fired, from where, at what, approximate time. Per-operator detail belongs in the use of force reports.",
+    hint:"Less-lethal impact munitions are recorded above under devices, not here."},
   {id:"bystanders", t:"single", l:"Innocents / bystanders needing to be secured?", o:["Yes","No"]},
   {id:"uof", t:"single", l:"Use of force reports required?", o:["Yes","No"]},
   {id:"uof_by", t:"people", l:"Use of force reports by", sub:1, showIf:{f:"uof",eq:"Yes"}},
@@ -594,11 +601,12 @@ function fieldHTML(f){
   const v = data[f.id];
   const lb = `<label class="f-lb" for="in_${f.id}">${esc(f.l)}</label>`;
   let body="";
-  if(f.t==="text"||f.t==="date"||f.t==="time"||f.t==="number"){
+  if(f.t==="text"||f.t==="date"||f.t==="time"||f.t==="number"||f.t==="tel"){
     const type = f.t==="text"?"text":f.t;
     body = `<input class="ti" id="in_${f.id}" type="${type}" data-in="${f.id}"
              value="${esc(v??"")}" placeholder="${esc(f.ph||"")}"
-             ${f.t==="number"?'inputmode="numeric"':""}>`;
+             ${f.t==="number"?'inputmode="numeric"':""}
+             ${f.t==="tel"?'inputmode="tel" autocomplete="tel"':""}>`;
   } else if(f.t==="textarea"){
     body = `<textarea class="ta ${f.tall?"tall":""}" id="in_${f.id}" data-in="${f.id}"
              placeholder="${esc(f.ph||"")}">${esc(v??"")}</textarea>`;
@@ -972,7 +980,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02c";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02d";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
