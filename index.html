@@ -114,6 +114,10 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
   font-family:var(--mono);font-size:14px;letter-spacing:.05em;color:var(--brass)
 }
 
+.pfilter{margin-bottom:8px;font-size:15px}
+.chip.gone{display:none}
+.f-hint.nomatch{display:none;color:var(--brass)}
+
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip{
   min-height:var(--tap);padding:9px 13px;border:1px solid var(--line);border-radius:9px;
@@ -317,7 +321,7 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
    types: text | textarea | date | time | number | single | multi | people | sig
    showIf: {f:'fieldId', eq:'Yes'}  or  {f:'fieldId', has:'Option text'}
    ============================================================ */
-const CHIEFS = ["Chief Lennon","Chief Considine","Chief Arrascue",
+const CHIEFS = ["Chief Lennon (SWAT)","Chief Considine (SWAT)","Chief Arrascue (TEMS)",
                 "Chief of Police of Requesting Agency"];
 
 /* Roster roles. A name with NO roles tagged shows up in every personnel field —
@@ -423,8 +427,8 @@ const SCHEMA = [
   {id:"tls",      t:"people", l:"SWAT team leaders", role:"tl"},
   {id:"ops",      t:"people", l:"SWAT operators", role:"op"},
   {id:"tems",     t:"people", l:"TEMS personnel", role:"tems"},
-  {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, role:"op", extra:["Not used"],
-    hint:"Assigned per operation. Use + Name if the driver is not on the operator list."},
+  {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, extra:["Not used"],
+    hint:"Assigned per operation — anyone on the roster, not a designated role."},
   {id:"rook",     t:"single", l:"Rook deployed?", o:["Yes","No"]},
   {id:"rook_op",  t:"people", l:"Rook operator", sub:1, role:"tech", showIf:{f:"rook",eq:"Yes"}},
   {id:"k9",       t:"people", l:"K9 teams", role:"k9", extra:["None"]},
@@ -530,6 +534,11 @@ let roster = loadRoster();
 let saves  = load(K_SAVES, {});
 let openSec = SCHEMA[0].id;
 
+/* Filter text is deliberately NOT persisted — it is a way of finding a name,
+   not part of the report. Show the box only once a list is long enough to hurt. */
+const filters = {};
+const FILTER_AT = 12;
+
 function load(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } }
 function store(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); return true; }catch(e){ return false; } }
 function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
@@ -592,6 +601,36 @@ function renderStrip(){
   }).join("");
 }
 
+/* Toggle chip visibility for one people field. Touches classes only. */
+function applyFilter(id){
+  const box = elForm.querySelector(`[data-chipbox="${id}"]`); if(!box) return;
+  const q = (filters[id]||"").trim().toLowerCase();
+  let shown = 0;
+  box.querySelectorAll("[data-chip]").forEach(c=>{
+    const keep = !q || c.classList.contains("on") || c.dataset.val.toLowerCase().includes(q);
+    c.classList.toggle("gone", !keep);
+    if(keep) shown++;
+  });
+  const nm = elForm.querySelector(`[data-nomatch="${id}"]`);
+  if(nm) nm.style.display = (q && !shown) ? "block" : "none";
+}
+
+/* People fields gate no conditional logic, so a pick only needs to repaint that
+   field. Avoids a full re-render that would drop the filter box and its focus. */
+function syncPeople(id){
+  const sel = Array.isArray(data[id]) ? data[id] : (data[id] ? [data[id]] : []);
+  elForm.querySelectorAll(`[data-chip="${id}"]`).forEach(c=>
+    c.classList.toggle("on", sel.includes(c.dataset.val)));
+  applyFilter(id);
+  bumpCounters(id);
+}
+function bumpCounters(id){
+  const secId = FIELD[id].sec;
+  const el = document.querySelector(`.sec[data-sec="${secId}"] .sec-ct`);
+  if(el){ const p = secProgress(SCHEMA.find(s=>s.id===secId)); el.textContent = `${p.done}/${p.total}`; }
+  renderStrip();
+}
+
 function refreshCalcs(){
   document.querySelectorAll("[data-calc]").forEach(el=>{
     const f = FIELD[el.dataset.calc]; if(!f || !f.fn) return;
@@ -627,19 +666,28 @@ function fieldHTML(f){
       .map(p => p.n);
     const pool = [...(f.extra||[]), ...eligible,
                   ...sel.filter(n=>!eligible.includes(n) && !(f.extra||[]).includes(n))];
+    const q = (filters[f.id]||"").trim().toLowerCase();
     const chips = pool.map(n=>{
       const on = sel.includes(n);
       const neg = /^(None|Not used)$/.test(n);
-      return `<button class="chip ${on?"on":""} ${neg?"neg":""}" data-chip="${f.id}"
+      /* anything already picked stays visible so you can always see and undo it */
+      const gone = q && !on && !n.toLowerCase().includes(q);
+      return `<button class="chip ${on?"on":""} ${neg?"neg":""} ${gone?"gone":""}" data-chip="${f.id}"
         data-mode="${f.one?"single-arr":"multi"}" data-val="${esc(n)}">${esc(n)}</button>`;
     }).join("");
+    const filterBox = pool.length > FILTER_AT
+      ? `<input class="ti pfilter" type="text" data-pfilter="${f.id}" value="${esc(filters[f.id]||"")}"
+           placeholder="Type to filter ${pool.length} names…" autocomplete="off"
+           autocorrect="off" autocapitalize="none" spellcheck="false">`
+      : "";
     let note = "";
     if(!roster.length)
       note = `<div class="f-hint">Roster is empty — add names from the ☰ menu.</div>`;
     else if(f.role && !eligible.length)
       note = `<div class="f-hint">Nobody is tagged <b>${esc(ROLE_FULL[f.role])}</b> in the roster. Tag them from the ☰ menu, or use + Name for a one-off.</div>`;
-    body = `<div class="chips">${chips}
-      <button class="chip add" data-addname="${f.id}" data-one="${f.one?1:0}">+ Name</button></div>${note}`;
+    body = `${filterBox}<div class="chips" data-chipbox="${f.id}">${chips}
+      <button class="chip add" data-addname="${f.id}" data-one="${f.one?1:0}">+ Name</button></div>
+      <div class="f-hint nomatch" data-nomatch="${f.id}">No name matches that.</div>${note}`;
   } else if(f.t==="calc"){
     const cv = f.fn();
     body = `<div class="calcbox" data-calc="${f.id}">${cv?esc(cv):"—"}</div>`;
@@ -670,6 +718,11 @@ function touch(rerender){
 }
 
 elForm.addEventListener("input", e=>{
+  /* filter box: hide non-matching chips in place. Re-rendering here would
+     destroy the input mid-keystroke and drop focus and the keyboard. */
+  const pf = e.target.dataset.pfilter;
+  if(pf){ filters[pf] = e.target.value; applyFilter(pf); return; }
+
   const id = e.target.dataset.in; if(!id) return;
   data[id] = e.target.value;
   if(id==="op_name") document.getElementById("hdrOp").textContent = data.op_name.trim()||"Post-Activation Report";
@@ -704,6 +757,7 @@ elForm.addEventListener("click", e=>{
       if(f.extra) f.extra.forEach(x=>{ if(val===x){ cur.length=0; cur.push(x); } else { const j=cur.indexOf(x); if(j>=0) cur.splice(j,1); } });
       data[id]=cur;
     }
+    if(FIELD[id].t==="people"){ syncPeople(id); touch(false); return; }
     prune(); touch(true); return;
   }
   if(t.dataset.addname){
@@ -982,7 +1036,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02g";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02h";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
