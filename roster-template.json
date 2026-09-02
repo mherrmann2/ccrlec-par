@@ -1,12 +1,14 @@
 {
   "app": "CCRLEC SWAT Post-Activation Report",
-  "version": 1,
-  "note": "Roster only. Importing this replaces the names on the device and leaves any report in progress untouched.",
+  "version": 2,
+  "note": "Roster only. Importing this replaces the names on the device and leaves any report in progress untouched. Roles control which personnel field each name appears in: cmd, tl, op, tems, k9, neg, drv. A name with an empty role list appears in every field.",
   "roster": [
-    "Sample, A — Barnstable PD",
-    "Sample, B — Yarmouth PD",
-    "Sample, C — TEMS",
-    "Sample, D — K9"
+    { "n": "Sample, A — Barnstable PD", "r": ["cmd"] },
+    { "n": "Sample, B — Yarmouth PD",   "r": ["tl", "op"] },
+    { "n": "Sample, C — Hyannis FD",    "r": ["tems"] },
+    { "n": "Sample, D — Yarmouth PD",   "r": ["k9", "op"] },
+    { "n": "Sample, E — Barnstable PD", "r": ["neg"] },
+    { "n": "Sample, F — Bourne PD",     "r": ["drv", "op"] }
   ],
   "data": {}
 }

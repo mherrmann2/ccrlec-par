@@ -5,7 +5,7 @@
    Editing index.html does NOT require a bump: the fetch handler revalidates in
    the background, so a pushed change lands on the next launch on its own.        */
 
-const SHELL  = "ccrlec-par-shell-v1";
+const SHELL  = "ccrlec-par-shell-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -13,7 +13,8 @@ const ASSETS = [
   "./icon-192.png",
   "./icon-512.png",
   "./icon-180.png",
-  "./icon-maskable-512.png"
+  "./icon-maskable-512.png",
+  "./logo.png"
 ];
 
 self.addEventListener("install", e => {

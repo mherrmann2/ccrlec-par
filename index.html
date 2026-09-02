@@ -184,7 +184,15 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
 .buildline .ready{color:var(--od)}
 .buildline .stale{color:var(--brass)}
 
-.rlist{display:flex;flex-direction:column;gap:7px;margin:4px 0 14px}
+.rlist{display:flex;flex-direction:column;gap:10px;margin:4px 0 14px}
+.rcard{border:1px solid var(--line);border-radius:10px;padding:9px;background:#0E1411}
+.rroles{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.rchip{
+  min-height:34px;padding:6px 10px;border:1px solid var(--line);border-radius:7px;
+  background:var(--panel);color:var(--ink-faint);
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em
+}
+.rchip.on{background:var(--od-deep);border-color:var(--od);color:#EAF3E3;font-weight:700}
 .ritem{display:flex;gap:7px;align-items:center}
 .ritem .ti{flex:1}
 .del{width:var(--tap);height:var(--tap);flex:none;border:1px solid var(--line);border-radius:9px;color:var(--rust);display:flex;align-items:center;justify-content:center}
@@ -212,7 +220,9 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
   body{background:#fff;color:#000;font-size:10.5pt}
   .hdr,main,.bar,.scrim,.sheet,.toast{display:none !important}
   #printview{display:block;font-family:"Times New Roman",Times,serif}
-  .p-hd{text-align:center;border-bottom:2px solid #000;padding-bottom:6pt;margin-bottom:10pt}
+  .p-hd{display:flex;align-items:center;gap:14pt;border-bottom:2px solid #000;padding-bottom:6pt;margin-bottom:10pt}
+  .p-hd-t{flex:1;text-align:center}
+  .p-logo{height:.62in;width:auto;flex:none}
   .p-hd h1{font-size:14pt;margin:0}
   .p-hd h2{font-size:12pt;margin:2pt 0 0;font-weight:normal}
   .p-hd .meta{font-size:8.5pt;margin-top:4pt;font-family:Arial,sans-serif}
@@ -309,6 +319,19 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
    ============================================================ */
 const CHIEFS = ["Chief Lennon","Chief Considine","Chief of Police of Requesting Agency"];
 
+/* Roster roles. A name with NO roles tagged shows up in every personnel field —
+   that keeps older rosters working after the upgrade.                            */
+const ROLES = [
+  {k:"cmd",  l:"CMD",  full:"Commander"},
+  {k:"tl",   l:"TL",   full:"Team leader"},
+  {k:"op",   l:"OP",   full:"Operator"},
+  {k:"tems", l:"TEMS", full:"TEMS medic"},
+  {k:"k9",   l:"K9",   full:"K9 handler"},
+  {k:"neg",  l:"NEG",  full:"Negotiator"},
+  {k:"drv",  l:"DRV",  full:"Bearcat driver"}
+];
+const ROLE_FULL = Object.fromEntries(ROLES.map(r=>[r.k,r.full]));
+
 /* Activation to clear. Rolls past midnight when no clear date is entered. */
 function calcDuration(){
   const st=data.act_time, et=data.end_time;
@@ -347,11 +370,14 @@ const SCHEMA = [
     "Pre-planned security — public event","Diplomatic protection","Other"]},
   {id:"act_type_other", t:"text", l:"Type of activation — specify", sub:1, showIf:{f:"act_type",has:"Other"}},
   {id:"op_location", t:"text", l:"Location", ph:"Town / street"},
-  {id:"warrant", t:"single", l:"Warrant requested or present?", o:["Yes","No"]},
+  {id:"warrant", t:"single", l:"Warrant requested or present?", o:[
+    "Yes — warrant on scene / present","Yes — warrant pending",
+    "No — no warrant applied for","Not applicable"]},
   {id:"section12", t:"single", l:"Section 12 in effect?", o:["Yes","No"]},
   {id:"incident_type", t:"multi", l:"Type of incident", o:[
     "Violent incident — no weapons","Violent incident — weapons","Search warrant — drugs",
-    "Search warrant — other","Arrest warrant","Suicidal person","Hostage situation","Other"]},
+    "Search warrant — other","Arrest warrant","Suicidal person","Hostage situation",
+    "Security / protection","Other"]},
   {id:"incident_type_other", t:"text", l:"Type of incident — specify", sub:1, showIf:{f:"incident_type",has:"Other"}},
   {id:"matrix_done", t:"single", l:"SWAT Threat Assessment Matrix completed?", o:["Yes","No"]},
   {id:"matrix_score", t:"number", l:"Matrix score", sub:1, showIf:{f:"matrix_done",eq:"Yes"}}
@@ -390,19 +416,19 @@ const SCHEMA = [
 ]},
 
 { id:"personnel", name:"Personnel & equipment", fields:[
-  {id:"cmdr",     t:"people", l:"SWAT commander of incident", one:1},
+  {id:"cmdr",     t:"people", l:"SWAT commander of incident", one:1, role:"cmd"},
   {id:"chiefs",   t:"multi",  l:"Control chiefs", o:CHIEFS},
-  {id:"tls",      t:"people", l:"SWAT team leaders"},
-  {id:"ops",      t:"people", l:"SWAT operators"},
-  {id:"tems",     t:"people", l:"TEMS personnel"},
-  {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, extra:["Not used"]},
+  {id:"tls",      t:"people", l:"SWAT team leaders", role:"tl"},
+  {id:"ops",      t:"people", l:"SWAT operators", role:"op"},
+  {id:"tems",     t:"people", l:"TEMS personnel", role:"tems"},
+  {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, role:"drv", extra:["Not used"]},
   {id:"rook",     t:"single", l:"Rook deployed?", o:["Yes","No"]},
-  {id:"k9",       t:"people", l:"K9 teams", extra:["None"]},
+  {id:"k9",       t:"people", l:"K9 teams", role:"k9", extra:["None"]},
   {id:"drones",   t:"single", l:"Drones deployed?", o:["Yes","No"]},
   {id:"drone_type", t:"multi", l:"Drone type", sub:1, showIf:{f:"drones",eq:"Yes"}, o:[
     "Interior","Exterior / overwatch"]},
   {id:"drone_op", t:"text", l:"Drone operator", sub:1, showIf:{f:"drones",eq:"Yes"}},
-  {id:"nego",     t:"people", l:"Negotiators", extra:["None"]},
+  {id:"nego",     t:"people", l:"Negotiators", role:"neg", extra:["None"]},
   {id:"equip",    t:"textarea", l:"Other equipment requested or used",
     ph:"Breaching tools, ladders, robot, thermal, ballistic shields…"}
 ]},
@@ -410,9 +436,20 @@ const SCHEMA = [
 { id:"execution", name:"Execution & outcome", fields:[
   {id:"redeploy", t:"single", l:"Redeployment briefing conducted?", o:["Yes","No"]},
   {id:"resolution", t:"multi", l:"How the operation resolved", o:[
-    "Surrender — no force used","Suspect taken into custody","Section 12 transport",
-    "Forced entry / breach","Suspect located deceased","Suspect not located / not present",
-    "Cancelled or stood down before entry","Scene turned over to requesting agency","Other"]},
+    "Surrender — no force used",
+    "Suspect taken into custody — no force used",
+    "Suspect taken into custody — force used, no serious bodily injury or death",
+    "Suspect taken into custody — serious bodily injury",
+    "Suspect killed during use of force",
+    "Section 12 transport",
+    "Forced entry / breach",
+    "Suspect located deceased",
+    "Suspect not located / not present",
+    "Security event cleared — no threats",
+    "SWAT response required at security event",
+    "Cancelled or stood down before entry",
+    "Scene turned over to requesting agency",
+    "Other"]},
   {id:"resolution_other", t:"text", l:"Resolution — specify", sub:1, showIf:{f:"resolution",has:"Other"}},
   {id:"devices", t:"single", l:"Chemical or diversionary devices deployed?", o:["Yes","No"]},
   {id:"device_type", t:"multi", l:"Device type", sub:1, showIf:{f:"devices",eq:"Yes"}, o:[
@@ -454,11 +491,33 @@ const SCHEMA = [
 /* ============================================================
    STATE
    ============================================================ */
-const K_DATA="ccrlec_par_current_v1", K_ROSTER="ccrlec_par_roster_v1", K_SAVES="ccrlec_par_saves_v1";
+const K_DATA="ccrlec_par_current_v1", K_ROSTER="ccrlec_par_roster_v2",
+      K_ROSTER_V1="ccrlec_par_roster_v1", K_SAVES="ccrlec_par_saves_v1";
 const FIELD = {}; SCHEMA.forEach(s=>s.fields.forEach(f=>{FIELD[f.id]={...f,sec:s.id};}));
 
+/* roster entries are {n:"Name", r:["op","tems"]}. Accepts the old flat
+   ["Name","Name"] shape and upgrades it — untagged names show everywhere. */
+function normRoster(list){
+  if(!Array.isArray(list)) return [];
+  return list.map(p=>{
+    if(typeof p==="string") return {n:p.trim(), r:[]};
+    if(p && typeof p==="object") return {n:String(p.n??p.name??"").trim(),
+                                         r:Array.isArray(p.r)?p.r.slice():[]};
+    return null;
+  }).filter(p=>p && p.n);
+}
+function loadRoster(){
+  const v2 = load(K_ROSTER, null);
+  if(Array.isArray(v2)) return normRoster(v2);
+  const v1 = load(K_ROSTER_V1, null);          /* one-time upgrade */
+  if(Array.isArray(v1) && v1.length){
+    const up = normRoster(v1); store(K_ROSTER, up); return up;
+  }
+  return [];
+}
+
 let data   = load(K_DATA, {});
-let roster = load(K_ROSTER, []);
+let roster = loadRoster();
 let saves  = load(K_SAVES, {});
 let openSec = SCHEMA[0].id;
 
@@ -552,16 +611,25 @@ function fieldHTML(f){
     }).join("") + `</div>`;
   } else if(f.t==="people"){
     const sel = Array.isArray(v)?v:(v?[v]:[]);
-    const pool = [...(f.extra||[]), ...roster, ...sel.filter(n=>!roster.includes(n) && !(f.extra||[]).includes(n))];
-    const chips = pool.length ? pool.map(n=>{
+    /* untagged names appear everywhere; fields with no role show the whole roster */
+    const eligible = roster
+      .filter(p => !f.role || !p.r || p.r.length===0 || p.r.includes(f.role))
+      .map(p => p.n);
+    const pool = [...(f.extra||[]), ...eligible,
+                  ...sel.filter(n=>!eligible.includes(n) && !(f.extra||[]).includes(n))];
+    const chips = pool.map(n=>{
       const on = sel.includes(n);
       const neg = /^(None|Not used)$/.test(n);
       return `<button class="chip ${on?"on":""} ${neg?"neg":""}" data-chip="${f.id}"
         data-mode="${f.one?"single-arr":"multi"}" data-val="${esc(n)}">${esc(n)}</button>`;
-    }).join("") : "";
+    }).join("");
+    let note = "";
+    if(!roster.length)
+      note = `<div class="f-hint">Roster is empty — add names from the ☰ menu.</div>`;
+    else if(f.role && !eligible.length)
+      note = `<div class="f-hint">Nobody is tagged <b>${esc(ROLE_FULL[f.role])}</b> in the roster. Tag them from the ☰ menu, or use + Name for a one-off.</div>`;
     body = `<div class="chips">${chips}
-      <button class="chip add" data-addname="${f.id}" data-one="${f.one?1:0}">+ Name</button></div>` +
-      (roster.length?"":`<div class="f-hint">Roster is empty — add names from the ☰ menu and they will appear in every personnel field.</div>`);
+      <button class="chip add" data-addname="${f.id}" data-one="${f.one?1:0}">+ Name</button></div>${note}`;
   } else if(f.t==="calc"){
     const cv = f.fn();
     body = `<div class="calcbox" data-calc="${f.id}">${cv?esc(cv):"—"}</div>`;
@@ -694,25 +762,42 @@ document.getElementById("sheetMenu").addEventListener("click",e=>{
 /* roster editor */
 function drawRoster(){
   const box=document.getElementById("rosterList");
-  box.innerHTML = roster.length ? roster.map((n,i)=>
-    `<div class="ritem"><input class="ti" data-r="${i}" value="${esc(n)}" placeholder="Last, First — Agency">
-     <button class="del" data-rdel="${i}">✕</button></div>`).join("")
-    : `<div class="empty">No names yet. Add the operators, TLs, medics, handlers and chiefs you activate with.</div>`;
+  box.innerHTML = roster.length ? roster.map((p,i)=>
+    `<div class="rcard">
+       <div class="ritem"><input class="ti" data-r="${i}" value="${esc(p.n)}" placeholder="Last, First — Agency">
+       <button class="del" data-rdel="${i}" aria-label="Remove">✕</button></div>
+       <div class="rroles">${ROLES.map(r=>
+         `<button class="rchip ${p.r.includes(r.k)?"on":""}" data-rrole="${i}|${r.k}"
+            title="${esc(r.full)}">${r.l}</button>`).join("")}
+       </div>
+     </div>`).join("")
+    : `<div class="empty">No names yet. Add the operators, TLs, medics, handlers and negotiators you activate with.</div>`;
 }
 document.getElementById("rosterList").addEventListener("input",e=>{
   const i=e.target.dataset.r; if(i===undefined) return;
-  roster[+i]=e.target.value; store(K_ROSTER,roster);
+  roster[+i].n=e.target.value; store(K_ROSTER,roster);
 });
 document.getElementById("rosterList").addEventListener("click",e=>{
-  const b=e.target.closest("[data-rdel]"); if(!b) return;
-  roster.splice(+b.dataset.rdel,1); store(K_ROSTER,roster); drawRoster(); render();
+  const del=e.target.closest("[data-rdel]");
+  if(del){
+    const p=roster[+del.dataset.rdel];
+    if(p.n.trim() && !confirm("Remove "+p.n+" from the roster?")) return;
+    roster.splice(+del.dataset.rdel,1); store(K_ROSTER,roster); drawRoster(); render(); return;
+  }
+  const rl=e.target.closest("[data-rrole]");
+  if(rl){
+    const [i,k]=rl.dataset.rrole.split("|");
+    const r=roster[+i].r, j=r.indexOf(k);
+    if(j>=0) r.splice(j,1); else r.push(k);
+    store(K_ROSTER,roster); rl.classList.toggle("on"); render();
+  }
 });
 document.getElementById("rosterAdd").addEventListener("click",()=>{
-  roster.push(""); store(K_ROSTER,roster); drawRoster();
+  roster.push({n:"",r:[]}); store(K_ROSTER,roster); drawRoster();
   const ins=document.querySelectorAll("#rosterList .ti"); ins[ins.length-1]?.focus();
 });
 document.getElementById("rosterDone").addEventListener("click",()=>{
-  roster = roster.map(n=>n.trim()).filter(Boolean);
+  roster = roster.map(p=>({n:p.n.trim(), r:p.r})).filter(p=>p.n);
   store(K_ROSTER,roster); openSheet(null); render(); toast("Roster updated");
 });
 
@@ -777,20 +862,20 @@ document.getElementById("fileIn").addEventListener("change",e=>{
       const p=JSON.parse(r.result);
       if(!p || typeof p!=="object") throw 0;
       const hasData   = p.data && typeof p.data==="object" && Object.keys(p.data).length>0;
-      const hasRoster = Array.isArray(p.roster) && p.roster.length>0;
+      const inRoster  = normRoster(p.roster);
+      const hasRoster = inRoster.length>0;
       if(!hasData && !hasRoster) throw 0;
 
       /* roster-only file — never disturbs an in-progress report */
       if(!hasData){
-        if(!confirm("This file holds a roster only ("+p.roster.length+" names). Replace the roster on this device? The report on screen is untouched.")) return;
-        roster=p.roster.map(n=>String(n).trim()).filter(Boolean);
-        store(K_ROSTER,roster); render(); toast("Roster imported"); return;
+        if(!confirm("This file holds a roster only ("+inRoster.length+" names). Replace the roster on this device? The report on screen is untouched.")) return;
+        roster=inRoster; store(K_ROSTER,roster); render(); toast("Roster imported"); return;
       }
 
       if(!confirm("Import will replace the report currently on screen. Continue?")) return;
       data=p.data;
       if(hasRoster && confirm("This backup also contains a roster. Replace the roster on this device?")){
-        roster=p.roster.map(n=>String(n).trim()).filter(Boolean); store(K_ROSTER,roster);
+        roster=inRoster; store(K_ROSTER,roster);
       }
       openSec=SCHEMA[0].id; touch(true); toast("Backup imported");
     }catch(_){ alert("That file is not a Post-Activation Report backup."); } };
@@ -844,10 +929,13 @@ function buildPrint(){
         <div class="cap">Signature — ${esc(author||"person creating report")}</div></div>
       <div class="box" style="max-width:2in"><div class="rule" style="align-items:flex-end">
         <div style="padding-bottom:3pt">${esc(sd)}</div></div><div class="cap">Date</div></div></div>`;
+  const logo = `<img class="p-logo" src="logo.png" alt="" onerror="this.style.visibility='hidden'">`;
   document.getElementById("printview").innerHTML =
-    `<div class="p-hd"><h1>Cape Cod Regional Law Enforcement Council SWAT</h1>
+    `<div class="p-hd">${logo}
+      <div class="p-hd-t"><h1>Cape Cod Regional Law Enforcement Council SWAT</h1>
       <h2>Post-Activation Report</h2>
       <div class="meta">${esc(reportLabel())}${data.act_date?" · "+esc(valueText(FIELD.act_date)):""}</div></div>
+      ${logo}</div>
      ${secs}${sig}
      <div class="p-ft"><span>CCRLEC SWAT — Post-Activation Report</span>
        <span>Printed ${new Date().toLocaleString()}</span></div>`;
@@ -868,7 +956,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-08-20a";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02a";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
