@@ -222,7 +222,7 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
   #printview{display:block;font-family:"Times New Roman",Times,serif}
   .p-hd{display:flex;align-items:center;gap:14pt;border-bottom:2px solid #000;padding-bottom:6pt;margin-bottom:10pt}
   .p-hd-t{flex:1;text-align:center}
-  .p-logo{height:.62in;width:auto;flex:none}
+  .p-logo{height:.66in;width:auto;flex:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .p-hd h1{font-size:14pt;margin:0}
   .p-hd h2{font-size:12pt;margin:2pt 0 0;font-weight:normal}
   .p-hd .meta{font-size:8.5pt;margin-top:4pt;font-family:Arial,sans-serif}
@@ -929,13 +929,14 @@ function buildPrint(){
         <div class="cap">Signature — ${esc(author||"person creating report")}</div></div>
       <div class="box" style="max-width:2in"><div class="rule" style="align-items:flex-end">
         <div style="padding-bottom:3pt">${esc(sd)}</div></div><div class="cap">Date</div></div></div>`;
-  const logo = `<img class="p-logo" src="logo.png" alt="" onerror="this.style.visibility='hidden'">`;
+  const logoL = `<img class="p-logo" src="logo-council.png" alt="" onerror="this.style.visibility='hidden'">`;
+  const logoR = `<img class="p-logo" src="logo-swat.png" alt="" onerror="this.style.visibility='hidden'">`;
   document.getElementById("printview").innerHTML =
-    `<div class="p-hd">${logo}
+    `<div class="p-hd">${logoL}
       <div class="p-hd-t"><h1>Cape Cod Regional Law Enforcement Council SWAT</h1>
       <h2>Post-Activation Report</h2>
       <div class="meta">${esc(reportLabel())}${data.act_date?" · "+esc(valueText(FIELD.act_date)):""}</div></div>
-      ${logo}</div>
+      ${logoR}</div>
      ${secs}${sig}
      <div class="p-ft"><span>CCRLEC SWAT — Post-Activation Report</span>
        <span>Printed ${new Date().toLocaleString()}</span></div>`;
@@ -956,7 +957,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02a";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02b";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
