@@ -328,7 +328,8 @@ const ROLES = [
   {k:"tems", l:"TEMS", full:"TEMS medic"},
   {k:"k9",   l:"K9",   full:"K9 handler"},
   {k:"neg",  l:"NEG",  full:"Negotiator"},
-  {k:"drv",  l:"DRV",  full:"Bearcat driver"}
+  {k:"drv",  l:"DRV",  full:"Bearcat driver"},
+  {k:"tech", l:"TECH", full:"Drone / Rook / robot operator"}
 ];
 const ROLE_FULL = Object.fromEntries(ROLES.map(r=>[r.k,r.full]));
 
@@ -424,11 +425,12 @@ const SCHEMA = [
   {id:"tems",     t:"people", l:"TEMS personnel", role:"tems"},
   {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, role:"drv", extra:["Not used"]},
   {id:"rook",     t:"single", l:"Rook deployed?", o:["Yes","No"]},
+  {id:"rook_op",  t:"people", l:"Rook operator", sub:1, role:"tech", showIf:{f:"rook",eq:"Yes"}},
   {id:"k9",       t:"people", l:"K9 teams", role:"k9", extra:["None"]},
   {id:"drones",   t:"single", l:"Drones deployed?", o:["Yes","No"]},
   {id:"drone_type", t:"multi", l:"Drone type", sub:1, showIf:{f:"drones",eq:"Yes"}, o:[
     "Interior","Exterior / overwatch"]},
-  {id:"drone_op", t:"text", l:"Drone operator", sub:1, showIf:{f:"drones",eq:"Yes"}},
+  {id:"drone_op", t:"people", l:"Drone operator", sub:1, role:"tech", showIf:{f:"drones",eq:"Yes"}},
   {id:"nego",     t:"people", l:"Negotiators", role:"neg", extra:["None"]},
   {id:"equip",    t:"textarea", l:"Other equipment requested or used",
     ph:"Breaching tools, ladders, robot, thermal, ballistic shields…"}
@@ -437,7 +439,6 @@ const SCHEMA = [
 { id:"execution", name:"Execution & outcome", fields:[
   {id:"redeploy", t:"single", l:"Redeployment briefing conducted?", o:["Yes","No"]},
   {id:"resolution", t:"multi", l:"How the operation resolved", o:[
-    "Surrender — no force used",
     "Suspect taken into custody — no force used",
     "Suspect taken into custody — force used, no serious bodily injury or death",
     "Suspect taken into custody — serious bodily injury",
@@ -980,7 +981,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02d";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02f";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
