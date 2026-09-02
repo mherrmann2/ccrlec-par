@@ -317,7 +317,8 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
    types: text | textarea | date | time | number | single | multi | people | sig
    showIf: {f:'fieldId', eq:'Yes'}  or  {f:'fieldId', has:'Option text'}
    ============================================================ */
-const CHIEFS = ["Chief Lennon","Chief Considine","Chief of Police of Requesting Agency"];
+const CHIEFS = ["Chief Lennon","Chief Considine","Chief Arrascue",
+                "Chief of Police of Requesting Agency"];
 
 /* Roster roles. A name with NO roles tagged shows up in every personnel field —
    that keeps older rosters working after the upgrade.                            */
@@ -328,7 +329,6 @@ const ROLES = [
   {k:"tems", l:"TEMS", full:"TEMS medic"},
   {k:"k9",   l:"K9",   full:"K9 handler"},
   {k:"neg",  l:"NEG",  full:"Negotiator"},
-  {k:"drv",  l:"DRV",  full:"Bearcat driver"},
   {k:"tech", l:"TECH", full:"Drone / Rook / robot operator"}
 ];
 const ROLE_FULL = Object.fromEntries(ROLES.map(r=>[r.k,r.full]));
@@ -423,7 +423,8 @@ const SCHEMA = [
   {id:"tls",      t:"people", l:"SWAT team leaders", role:"tl"},
   {id:"ops",      t:"people", l:"SWAT operators", role:"op"},
   {id:"tems",     t:"people", l:"TEMS personnel", role:"tems"},
-  {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, role:"drv", extra:["Not used"]},
+  {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, role:"op", extra:["Not used"],
+    hint:"Assigned per operation. Use + Name if the driver is not on the operator list."},
   {id:"rook",     t:"single", l:"Rook deployed?", o:["Yes","No"]},
   {id:"rook_op",  t:"people", l:"Rook operator", sub:1, role:"tech", showIf:{f:"rook",eq:"Yes"}},
   {id:"k9",       t:"people", l:"K9 teams", role:"k9", extra:["None"]},
@@ -981,7 +982,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02f";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02g";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
