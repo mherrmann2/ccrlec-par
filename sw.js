@@ -5,7 +5,7 @@
    Editing index.html does NOT require a bump: the fetch handler revalidates in
    the background, so a pushed change lands on the next launch on its own.        */
 
-const SHELL  = "ccrlec-par-shell-v13";
+const SHELL  = "ccrlec-par-shell-v14";
 const ASSETS = [
   "./",
   "./index.html",

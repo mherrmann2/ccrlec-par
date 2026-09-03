@@ -346,8 +346,7 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
    types: text | textarea | date | time | number | single | multi | people | sig
    showIf: {f:'fieldId', eq:'Yes'}  or  {f:'fieldId', has:'Option text'}
    ============================================================ */
-const CHIEFS = ["Chief Lennon (SWAT)","Chief Considine (SWAT)","Chief Arrascue (TEMS)",
-                "Chief of Police of Requesting Agency"];
+const CHIEFS = ["Chief Lennon (SWAT)","Chief Considine (SWAT)","Chief Arrascue (TEMS)"];
 
 /* Roster roles. A name with NO roles tagged shows up in every personnel field —
    that keeps older rosters working after the upgrade.                            */
@@ -1087,7 +1086,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02l";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02m";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
