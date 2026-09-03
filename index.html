@@ -354,6 +354,7 @@ const CHIEFS = ["Chief Lennon (SWAT)","Chief Considine (SWAT)","Chief Arrascue (
 const ROLES = [
   {k:"cmd",  l:"CMD",  full:"Commander"},
   {k:"tl",   l:"TL",   full:"Team leader"},
+  {k:"atl",  l:"ATL",  full:"Assistant team leader"},
   {k:"op",   l:"OP",   full:"Operator"},
   {k:"tems", l:"TEMS", full:"TEMS medic"},
   {k:"k9",   l:"K9",   full:"K9 handler"},
@@ -449,7 +450,7 @@ const SCHEMA = [
 { id:"personnel", name:"Personnel & equipment", fields:[
   {id:"cmdr",     t:"people", l:"SWAT commander of incident", one:1, role:"cmd"},
   {id:"chiefs",   t:"multi",  l:"Control chiefs", o:CHIEFS},
-  {id:"tls",      t:"people", l:"SWAT team leaders", role:"tl"},
+  {id:"tls",      t:"people", l:"SWAT team leaders", role:["tl","atl"]},
   {id:"ops",      t:"people", l:"SWAT operators", role:"op"},
   {id:"tems",     t:"people", l:"TEMS personnel", role:"tems"},
   {id:"bearcat",  t:"people", l:"Bearcat driver", one:1, extra:["Not used"],
@@ -536,33 +537,28 @@ const SCHEMA = [
    in the roster editor are replaced when that happens, so roster
    changes belong here rather than on individual phones.
    --------------------------------------------------------------- */
-const ROSTER_VERSION = 1;
+const ROSTER_VERSION = 2;
 const DEFAULT_ROSTER = [
-  /* Command */
   {n:"Feliciano, Armando / BPD", r:["cmd"]},
   {n:"Frederickson, Corey / BPD", r:["cmd"]},
-  /* Team leaders */
   {n:"Carchedi, Brian / YPD", r:["tl","op"]},
-  {n:"Giuca, Christopher / MPD", r:["tl","op"]},
-  {n:"Lanctot, Daniel / Brewster PD", r:["tl","op"]},
+  {n:"Giuca, Christopher / MPD", r:["atl","op"]},
+  {n:"Lanctot, Daniel / Brewster PD", r:["atl","op"]},
   {n:"Aprea, Richard / YPD", r:["tl","op"]},
-  {n:"Nardone, Ryan / MPD", r:["tl","op"]},
-  {n:"Lobianco, Christopher / BPD", r:["tl","op"]},
-  {n:"Couzzo, William / MPD", r:["tl","op"]},
-  {n:"Booth, Reid / Eastham PD", r:["tl","op"]},
-  {n:"Sheehan, Matthew / YPD", r:["tl","op"]},
-  {n:"Ruggieri, Adam / BPD", r:["tl","op"]},
-  {n:"Jackson, Spencer / BPD", r:["tl","op"]},
-  /* Operators */
   {n:"Cardoso, Newton / FPD", r:["op"]},
   {n:"Vermette, Tyler / HPD", r:["op"]},
   {n:"Elizondo, Minor / DPD", r:["op"]},
   {n:"Lawler, Devin / FPD", r:["op"]},
+  {n:"Nardone, Ryan / MPD", r:["tl","op"]},
+  {n:"Lobianco, Christopher / BPD", r:["atl","op"]},
+  {n:"Couzzo, William / MPD", r:["atl","op"]},
   {n:"Anziano, Brian / DPD", r:["op"]},
   {n:"Brule, Ryan / YPD", r:["op"]},
   {n:"Henderson, Alec / SPD", r:["op"]},
   {n:"Dedinas, Benjamin / OPD", r:["op"]},
   {n:"Roberge, Nicholas / BCSO", r:["op"]},
+  {n:"Booth, Reid / Eastham PD", r:["tl","op"]},
+  {n:"Sheehan, Matthew / YPD", r:["atl","op"]},
   {n:"Brickley, Brendan / HPD", r:["op"]},
   {n:"Brunelli, Jeffrey / SPD", r:["op"]},
   {n:"Cogswell, Peter / MPD", r:["op"]},
@@ -570,30 +566,29 @@ const DEFAULT_ROSTER = [
   {n:"Jurkowski, Chris / OPD", r:["op"]},
   {n:"Sweeney, Ryan / BOPD", r:["op"]},
   {n:"Voltolini, Samantha / YPD", r:["op"]},
+  {n:"Ruggieri, Adam / BPD", r:["tl","op"]},
+  {n:"Jackson, Spencer / BPD", r:["atl","op","tech"]},
   {n:"Cleary, Sean / BPD", r:["op"]},
   {n:"Atcheson, Nick / BPD", r:["op"]},
   {n:"Brandt, Timothy / FPD", r:["op"]},
   {n:"Franklin, Alex / FPD", r:["op"]},
   {n:"Dow, Tyler / Brewster PD", r:["op"]},
   {n:"McDonough, John / MPD", r:["op"]},
-  /* K9 handlers */
-  {n:"Kramer, Michael / YPD", r:["k9"]},
+  {n:"Kramer, Michael / YPD", r:["tl","k9"]},
   {n:"Derochea, Brian / BPD", r:["k9"]},
   {n:"Fitzpatrick, Nicholas / BCSO", r:["k9"]},
-  /* TEMS */
-  {n:"Herrmann, Michael / HYFD", r:["tems"]},
-  {n:"George, Patrick / SFD", r:["tems"]},
-  {n:"Caruso, David / YFD", r:["tems"]},
+  {n:"Herrmann, Michael / HYFD", r:["tl","tems"]},
+  {n:"George, Patrick / SFD", r:["atl","tems"]},
+  {n:"Caruso, David / YFD", r:["atl","tems"]},
   {n:"Amick, Michael / HYFD", r:["tems"]},
   {n:"Hickey, Ryan / WFD", r:["tems"]},
   {n:"Goulet, Jacob / HFD", r:["tems"]},
   {n:"Batzinger, Peter / HFD", r:["tems"]},
   {n:"Karter, Seth / COMMFD", r:["tems"]},
   {n:"Montesi, Torey / MFD", r:["tems"]},
-  /* Negotiators */
-  {n:"Fernandes, Kevin / BCSO", r:["neg"]},
-  {n:"Assad, Michael / MPD", r:["neg"]},
-  {n:"Parache, Catarina / BPD", r:["neg"]},
+  {n:"Fernandes, Kevin / BCSO", r:["tl","neg"]},
+  {n:"Assad, Michael / MPD", r:["atl","neg"]},
+  {n:"Parache, Catarina / BPD", r:["atl","neg"]},
   {n:"Richter, Seth / DPD", r:["neg"]},
   {n:"Sullivan, William / DPD", r:["neg"]},
   {n:"Eccelston, Christopher / YPD", r:["neg"]},
@@ -604,10 +599,9 @@ const DEFAULT_ROSTER = [
   {n:"Langton, Louis / BCSO", r:["neg"]},
   {n:"Sabila, Simon / PPD", r:["neg"]},
   {n:"Stanford, Grant / BCSO", r:["neg"]},
-  /* Drone / Rook / robot */
   {n:"MacDonald, James / PCSO (Rook)", r:["tech"]},
-  {n:"Ashe, Thomas / BCSO (Drone TL)", r:["tech"]},
-  {n:"Smith, Matthew / BCSO (Drone ATL)", r:["tech"]},
+  {n:"Ashe, Thomas / BCSO (Drone TL)", r:["tl","tech"]},
+  {n:"Smith, Matthew / BCSO (Drone ATL)", r:["atl","tech"]},
   {n:"Manfredi, Anthony / BCSO (Drone)", r:["tech"]}
 ];
 
@@ -786,8 +780,9 @@ function fieldHTML(f){
   } else if(f.t==="people"){
     const sel = Array.isArray(v)?v:(v?[v]:[]);
     /* untagged names appear everywhere; fields with no role show the whole roster */
+    const want = f.role ? [].concat(f.role) : null;
     const eligible = roster
-      .filter(p => !f.role || !p.r || p.r.length===0 || p.r.includes(f.role))
+      .filter(p => !want || !p.r || p.r.length===0 || p.r.some(k=>want.includes(k)))
       .map(p => p.n);
     const pool = [...(f.extra||[]), ...eligible,
                   ...sel.filter(n=>!eligible.includes(n) && !(f.extra||[]).includes(n))];
@@ -809,7 +804,7 @@ function fieldHTML(f){
     if(!roster.length)
       note = `<div class="f-hint">Roster is empty — add names from the ☰ menu.</div>`;
     else if(f.role && !eligible.length)
-      note = `<div class="f-hint">Nobody is tagged <b>${esc(ROLE_FULL[f.role])}</b> in the roster. Tag them from the ☰ menu, or use + Name for a one-off.</div>`;
+      note = `<div class="f-hint">Nobody is tagged <b>${esc([].concat(f.role).map(k=>ROLE_FULL[k]).join(" or "))}</b> in the roster. Tag them from the ☰ menu, or use + Name for a one-off.</div>`;
     body = `${filterBox}<div class="chips" data-chipbox="${f.id}">${chips}
       <button class="chip add" data-addname="${f.id}" data-one="${f.one?1:0}">+ Name</button></div>
       <div class="f-hint nomatch" data-nomatch="${f.id}">No name matches that.</div>${note}`;
@@ -1194,7 +1189,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02n";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02o";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
