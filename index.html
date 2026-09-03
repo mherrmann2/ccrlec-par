@@ -775,22 +775,36 @@ elForm.addEventListener("click", e=>{
     if(mode==="single"){ data[id] = (data[id]===val)?"":val; }
     else if(mode==="single-arr"){ data[id] = (Array.isArray(data[id])&&data[id][0]===val)?[]:[val]; }
     else {
-      const cur = Array.isArray(data[id])?[...data[id]]:[];
+      const f = FIELD[id];
+      const extras = f.extra || [];          /* e.g. "None", "Not used" */
+      const cur = Array.isArray(data[id]) ? [...data[id]] : [];
       const i = cur.indexOf(val);
-      if(i>=0) cur.splice(i,1); else cur.push(val);
-      const f=FIELD[id];
-      if(f.extra) f.extra.forEach(x=>{ if(val===x){ cur.length=0; cur.push(x); } else { const j=cur.indexOf(x); if(j>=0) cur.splice(j,1); } });
+      if(i>=0){
+        cur.splice(i,1);                     /* plain toggle off, extras included */
+      } else if(extras.includes(val)){
+        cur.length = 0; cur.push(val);       /* picking an extra clears everything else */
+      } else {
+        /* picking a real name means the answer is no longer "None" */
+        extras.forEach(x=>{ const j=cur.indexOf(x); if(j>=0) cur.splice(j,1); });
+        cur.push(val);
+      }
       data[id]=cur;
     }
     if(FIELD[id].t==="people"){ syncPeople(id); touch(false); return; }
     prune(); touch(true); return;
   }
   if(t.dataset.addname){
-    const id=t.dataset.addname;
+    const id=t.dataset.addname, f=FIELD[id];
     const n=(prompt("Name to add for this field only:")||"").trim();
     if(!n) return;
     if(t.dataset.one==="1") data[id]=[n];
-    else { const cur=Array.isArray(data[id])?[...data[id]]:[]; if(!cur.includes(n)) cur.push(n); data[id]=cur; }
+    else {
+      const cur=Array.isArray(data[id])?[...data[id]]:[];
+      /* a typed-in name is a real answer, so it clears "None" the same way a chip does */
+      (f.extra||[]).forEach(x=>{ const j=cur.indexOf(x); if(j>=0) cur.splice(j,1); });
+      if(!cur.includes(n)) cur.push(n);
+      data[id]=cur;
+    }
     touch(true); return;
   }
   if(t.dataset.sigclear){ data[t.dataset.sigclear]=""; touch(true); return; }
@@ -1073,7 +1087,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02k";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02l";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
