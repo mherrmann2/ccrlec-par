@@ -537,7 +537,7 @@ const SCHEMA = [
    in the roster editor are replaced when that happens, so roster
    changes belong here rather than on individual phones.
    --------------------------------------------------------------- */
-const ROSTER_VERSION = 2;
+const ROSTER_VERSION = 3;
 const DEFAULT_ROSTER = [
   {n:"Feliciano, Armando / BPD", r:["cmd"]},
   {n:"Frederickson, Corey / BPD", r:["cmd"]},
@@ -578,7 +578,7 @@ const DEFAULT_ROSTER = [
   {n:"Derochea, Brian / BPD", r:["k9"]},
   {n:"Fitzpatrick, Nicholas / BCSO", r:["k9"]},
   {n:"Herrmann, Michael / HYFD", r:["tl","tems"]},
-  {n:"George, Patrick / SFD", r:["atl","tems"]},
+  {n:"George, Patrick / SFD", r:["tems"]},
   {n:"Caruso, David / YFD", r:["atl","tems"]},
   {n:"Amick, Michael / HYFD", r:["tems"]},
   {n:"Hickey, Ryan / WFD", r:["tems"]},
@@ -1189,7 +1189,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02o";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02p";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
