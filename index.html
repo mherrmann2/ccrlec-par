@@ -200,6 +200,13 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
 .ritem{display:flex;gap:7px;align-items:center}
 .ritem .ti{flex:1}
 .del{width:var(--tap);height:var(--tap);flex:none;border:1px solid var(--line);border-radius:9px;color:var(--rust);display:flex;align-items:center;justify-content:center}
+.warn{
+  margin-top:12px;padding:12px 13px;border-radius:9px;
+  border:1px solid var(--brass);background:rgba(201,162,74,.09);
+  font-size:12.5px;line-height:1.55;color:var(--ink)
+}
+.warn b{color:var(--brass);font-weight:650}
+
 .savelist{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
 .saveitem{display:flex;gap:7px;align-items:stretch}
 .saveitem>button:first-child{
@@ -301,11 +308,29 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
   <button class="nextbtn" id="rosterDone" style="border-color:var(--od);color:#EAF3E3;background:var(--od-deep)">Done</button>
 </div>
 
+<!-- save sheet -->
+<div class="sheet" id="sheetSave">
+  <div class="grab"></div>
+  <h3>Save a named copy</h3>
+  <p class="note">So you can reopen this report later on this phone.</p>
+  <input class="ti" id="saveName" type="text" placeholder="Name this copy" autocomplete="off">
+  <div class="warn">
+    <b>This copy is saved on this phone only.</b>
+    It lives in the browser's storage for this app. It is not sent anywhere, and nobody
+    else can see it. Clearing your browser history and website data, or deleting the
+    home-screen icon, will delete it. <b>Print the PDF for anything that has to be kept.</b>
+  </div>
+  <div class="row2" style="margin-top:14px">
+    <button class="nextbtn" id="saveCancel" style="margin-top:0">Cancel</button>
+    <button class="nextbtn" id="saveGo" style="margin-top:0;border-color:var(--od);color:#EAF3E3;background:var(--od-deep)">Save copy</button>
+  </div>
+</div>
+
 <!-- saves sheet -->
 <div class="sheet" id="sheetSaves">
   <div class="grab"></div>
   <h3>Saved reports</h3>
-  <p class="note">Kept on this phone only. Print the PDF for anything that needs to be filed.</p>
+  <p class="note">Kept on this phone only — clearing browser history and website data, or deleting the home-screen icon, deletes these. Print the PDF for anything that has to be filed.</p>
   <div class="savelist" id="savesList"></div>
 </div>
 
@@ -807,7 +832,7 @@ function mountSig(id){
    ============================================================ */
 const scrim=document.getElementById("scrim");
 function openSheet(idOrNull){
-  ["sheetMenu","sheetRoster","sheetSaves"].forEach(s=>document.getElementById(s).classList.toggle("on", s===idOrNull));
+  ["sheetMenu","sheetRoster","sheetSaves","sheetSave"].forEach(s=>document.getElementById(s).classList.toggle("on", s===idOrNull));
   scrim.classList.toggle("on", !!idOrNull);
 }
 scrim.addEventListener("click",()=>openSheet(null));
@@ -871,10 +896,22 @@ function reportLabel(){
   return n || (data.act_date ? "Activation "+data.act_date : "Untitled report");
 }
 function saveAs(){
-  const nm=(prompt("Name this copy:", reportLabel())||"").trim(); if(!nm) return;
-  saves[nm]={ savedAt:new Date().toISOString(), data:JSON.parse(JSON.stringify(data)) };
-  store(K_SAVES,saves) ? toast("Saved — "+nm) : toast("Storage full");
+  const inp=document.getElementById("saveName");
+  inp.value = reportLabel();
+  openSheet("sheetSave");
+  setTimeout(()=>{ inp.focus(); inp.select?.(); },260);
 }
+function commitSave(){
+  const nm=(document.getElementById("saveName").value||"").trim();
+  if(!nm){ toast("Give the copy a name"); return; }
+  if(saves[nm] && !confirm("A saved copy called “"+nm+"” already exists. Replace it?")) return;
+  saves[nm]={ savedAt:new Date().toISOString(), data:JSON.parse(JSON.stringify(data)) };
+  openSheet(null);
+  toast(store(K_SAVES,saves) ? "Saved on this phone — "+nm : "Storage full — share a draft instead");
+}
+document.getElementById("saveGo").addEventListener("click",commitSave);
+document.getElementById("saveCancel").addEventListener("click",()=>openSheet(null));
+document.getElementById("saveName").addEventListener("keydown",e=>{ if(e.key==="Enter") commitSave(); });
 function drawSaves(){
   const box=document.getElementById("savesList");
   const keys=Object.keys(saves).sort((a,b)=>(saves[b].savedAt||"").localeCompare(saves[a].savedAt||""));
@@ -1036,7 +1073,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02j";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02k";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
