@@ -79,17 +79,25 @@ Anyone can confirm which build they're on: **⋯ menu → bottom line**.
 
 ## Roster
 
-Ship with the roster empty — the site is a public URL and the roster is a list of
-operators' names.
+The team roster is **built into `index.html`** (`DEFAULT_ROSTER`) and installs
+itself on first launch — no setup on the phone. Note this is a public URL, so the
+roster is public; that was a deliberate call.
 
-To load the team's names on a device:
+To publish a roster change:
 
-1. Copy `roster-template.json`, replace the sample names, keep `"data": {}`
-2. Send it to the team however you normally move files
-3. On the phone: **⋯ menu → Import JSON backup → pick the file**
+1. Edit `DEFAULT_ROSTER`
+2. **Bump `ROSTER_VERSION`**
+3. Push
 
-A roster-only file replaces just the names. It will not disturb a report in
-progress. The roster also survives **Clear this report**.
+Devices holding an older edition pick up the new one on next launch and show a
+"Team roster updated" toast. Without the version bump, phones keep what they have.
+
+Because a version bump replaces the roster, **roster edits belong in this file,
+not on individual phones**. The in-app roster editor still works for a one-off,
+and **⋯ → Restore team roster** puts the shipped list back.
+
+Names typed with **+ Name** on a personnel field are stored with that report, not
+in the roster, so they always survive.
 
 ---
 

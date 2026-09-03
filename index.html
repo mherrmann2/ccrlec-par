@@ -302,9 +302,10 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
 <div class="sheet" id="sheetRoster">
   <div class="grab"></div>
   <h3>Team roster</h3>
-  <p class="note">One name per line. The roster survives clearing a report and is shared by every personnel field.</p>
+  <p class="note">The team roster ships with the app and is shared by every personnel field. Edits here are local to this phone and are replaced when a new roster is published.</p>
   <div class="rlist" id="rosterList"></div>
   <button class="nextbtn" id="rosterAdd" style="margin-top:0">+ Add name</button>
+  <button class="nextbtn" id="rosterReset">Restore team roster</button>
   <button class="nextbtn" id="rosterDone" style="border-color:var(--od);color:#EAF3E3;background:var(--od-deep)">Done</button>
 </div>
 
@@ -528,8 +529,91 @@ const SCHEMA = [
 /* ============================================================
    STATE
    ============================================================ */
+/* ---------------------------------------------------------------
+   Built-in team roster. Source: Cape SWAT Team Roster rev 8/11/26.
+   Bump ROSTER_VERSION when this list changes — devices holding an
+   older version pick up the new one on next launch. Local edits made
+   in the roster editor are replaced when that happens, so roster
+   changes belong here rather than on individual phones.
+   --------------------------------------------------------------- */
+const ROSTER_VERSION = 1;
+const DEFAULT_ROSTER = [
+  /* Command */
+  {n:"Feliciano, Armando / BPD", r:["cmd"]},
+  {n:"Frederickson, Corey / BPD", r:["cmd"]},
+  /* Team leaders */
+  {n:"Carchedi, Brian / YPD", r:["tl","op"]},
+  {n:"Giuca, Christopher / MPD", r:["tl","op"]},
+  {n:"Lanctot, Daniel / Brewster PD", r:["tl","op"]},
+  {n:"Aprea, Richard / YPD", r:["tl","op"]},
+  {n:"Nardone, Ryan / MPD", r:["tl","op"]},
+  {n:"Lobianco, Christopher / BPD", r:["tl","op"]},
+  {n:"Couzzo, William / MPD", r:["tl","op"]},
+  {n:"Booth, Reid / Eastham PD", r:["tl","op"]},
+  {n:"Sheehan, Matthew / YPD", r:["tl","op"]},
+  {n:"Ruggieri, Adam / BPD", r:["tl","op"]},
+  {n:"Jackson, Spencer / BPD", r:["tl","op"]},
+  /* Operators */
+  {n:"Cardoso, Newton / FPD", r:["op"]},
+  {n:"Vermette, Tyler / HPD", r:["op"]},
+  {n:"Elizondo, Minor / DPD", r:["op"]},
+  {n:"Lawler, Devin / FPD", r:["op"]},
+  {n:"Anziano, Brian / DPD", r:["op"]},
+  {n:"Brule, Ryan / YPD", r:["op"]},
+  {n:"Henderson, Alec / SPD", r:["op"]},
+  {n:"Dedinas, Benjamin / OPD", r:["op"]},
+  {n:"Roberge, Nicholas / BCSO", r:["op"]},
+  {n:"Brickley, Brendan / HPD", r:["op"]},
+  {n:"Brunelli, Jeffrey / SPD", r:["op"]},
+  {n:"Cogswell, Peter / MPD", r:["op"]},
+  {n:"Mele, Andrew / BPD", r:["op"]},
+  {n:"Jurkowski, Chris / OPD", r:["op"]},
+  {n:"Sweeney, Ryan / BOPD", r:["op"]},
+  {n:"Voltolini, Samantha / YPD", r:["op"]},
+  {n:"Cleary, Sean / BPD", r:["op"]},
+  {n:"Atcheson, Nick / BPD", r:["op"]},
+  {n:"Brandt, Timothy / FPD", r:["op"]},
+  {n:"Franklin, Alex / FPD", r:["op"]},
+  {n:"Dow, Tyler / Brewster PD", r:["op"]},
+  {n:"McDonough, John / MPD", r:["op"]},
+  /* K9 handlers */
+  {n:"Kramer, Michael / YPD", r:["k9"]},
+  {n:"Derochea, Brian / BPD", r:["k9"]},
+  {n:"Fitzpatrick, Nicholas / BCSO", r:["k9"]},
+  /* TEMS */
+  {n:"Herrmann, Michael / HYFD", r:["tems"]},
+  {n:"George, Patrick / SFD", r:["tems"]},
+  {n:"Caruso, David / YFD", r:["tems"]},
+  {n:"Amick, Michael / HYFD", r:["tems"]},
+  {n:"Hickey, Ryan / WFD", r:["tems"]},
+  {n:"Goulet, Jacob / HFD", r:["tems"]},
+  {n:"Batzinger, Peter / HFD", r:["tems"]},
+  {n:"Karter, Seth / COMMFD", r:["tems"]},
+  {n:"Montesi, Torey / MFD", r:["tems"]},
+  /* Negotiators */
+  {n:"Fernandes, Kevin / BCSO", r:["neg"]},
+  {n:"Assad, Michael / MPD", r:["neg"]},
+  {n:"Parache, Catarina / BPD", r:["neg"]},
+  {n:"Richter, Seth / DPD", r:["neg"]},
+  {n:"Sullivan, William / DPD", r:["neg"]},
+  {n:"Eccelston, Christopher / YPD", r:["neg"]},
+  {n:"Foley, Dave / BPD", r:["neg"]},
+  {n:"Kelsey, Christopher / BPD", r:["neg"]},
+  {n:"Fernandes, Rebecca / BCSO", r:["neg"]},
+  {n:"Meila, Matthew / BPD", r:["neg"]},
+  {n:"Langton, Louis / BCSO", r:["neg"]},
+  {n:"Sabila, Simon / PPD", r:["neg"]},
+  {n:"Stanford, Grant / BCSO", r:["neg"]},
+  /* Drone / Rook / robot */
+  {n:"MacDonald, James / PCSO (Rook)", r:["tech"]},
+  {n:"Ashe, Thomas / BCSO (Drone TL)", r:["tech"]},
+  {n:"Smith, Matthew / BCSO (Drone ATL)", r:["tech"]},
+  {n:"Manfredi, Anthony / BCSO (Drone)", r:["tech"]}
+];
+
 const K_DATA="ccrlec_par_current_v1", K_ROSTER="ccrlec_par_roster_v2",
-      K_ROSTER_V1="ccrlec_par_roster_v1", K_SAVES="ccrlec_par_saves_v1";
+      K_ROSTER_V1="ccrlec_par_roster_v1", K_ROSTER_VER="ccrlec_par_roster_ver",
+      K_SAVES="ccrlec_par_saves_v1";
 const FIELD = {}; SCHEMA.forEach(s=>s.fields.forEach(f=>{FIELD[f.id]={...f,sec:s.id};}));
 
 /* roster entries are {n:"Name", r:["op","tems"]}. Accepts the old flat
@@ -544,14 +628,31 @@ function normRoster(list){
   }).filter(p=>p && p.n);
 }
 function loadRoster(){
+  const storedVer = +(load(K_ROSTER_VER, 0) || 0);
   const v2 = load(K_ROSTER, null);
-  if(Array.isArray(v2)) return normRoster(v2);
-  const v1 = load(K_ROSTER_V1, null);          /* one-time upgrade */
-  if(Array.isArray(v1) && v1.length){
-    const up = normRoster(v1); store(K_ROSTER, up); return up;
+
+  /* Nothing on the device yet — ship the team roster straight in. */
+  if(!Array.isArray(v2)){
+    const v1 = load(K_ROSTER_V1, null);                /* pre-roles upgrade */
+    if(Array.isArray(v1) && v1.length){
+      const up = normRoster(v1); store(K_ROSTER, up); return up;
+    }
+    const def = normRoster(DEFAULT_ROSTER);
+    store(K_ROSTER, def); store(K_ROSTER_VER, ROSTER_VERSION);
+    return def;
   }
-  return [];
+
+  /* Device holds an older edition of the built-in roster — replace it so a
+     published roster change actually reaches the team. */
+  if(storedVer < ROSTER_VERSION){
+    const def = normRoster(DEFAULT_ROSTER);
+    store(K_ROSTER, def); store(K_ROSTER_VER, ROSTER_VERSION);
+    rosterWasUpdated = storedVer > 0;
+    return def;
+  }
+  return normRoster(v2);
 }
+let rosterWasUpdated = false;
 
 let data   = load(K_DATA, {});
 let roster = loadRoster();
@@ -898,6 +999,12 @@ document.getElementById("rosterAdd").addEventListener("click",()=>{
   roster.push({n:"",r:[]}); store(K_ROSTER,roster); drawRoster();
   const ins=document.querySelectorAll("#rosterList .ti"); ins[ins.length-1]?.focus();
 });
+document.getElementById("rosterReset").addEventListener("click",()=>{
+  if(!confirm("Replace the roster on this phone with the team roster that ships with the app? Any names you added here are removed.")) return;
+  roster=normRoster(DEFAULT_ROSTER);
+  store(K_ROSTER,roster); store(K_ROSTER_VER,ROSTER_VERSION);
+  drawRoster(); render(); toast("Team roster restored");
+});
 document.getElementById("rosterDone").addEventListener("click",()=>{
   roster = roster.map(p=>({n:p.n.trim(), r:p.r})).filter(p=>p.n);
   store(K_ROSTER,roster); openSheet(null); render(); toast("Roster updated");
@@ -983,13 +1090,14 @@ document.getElementById("fileIn").addEventListener("change",e=>{
       /* roster-only file — never disturbs an in-progress report */
       if(!hasData){
         if(!confirm("This file holds a roster only ("+inRoster.length+" names). Replace the roster on this device? The report on screen is untouched.")) return;
-        roster=inRoster; store(K_ROSTER,roster); render(); toast("Roster imported"); return;
+        roster=inRoster; store(K_ROSTER,roster); store(K_ROSTER_VER,ROSTER_VERSION);
+        render(); toast("Roster imported"); return;
       }
 
       if(!confirm("Opening this draft will replace the report currently on screen. Continue?")) return;
       data=p.data;
       if(hasRoster && confirm("This draft also contains a team roster. Replace the roster on this phone?")){
-        roster=inRoster; store(K_ROSTER,roster);
+        roster=inRoster; store(K_ROSTER,roster); store(K_ROSTER_VER,ROSTER_VERSION);
       }
       openSec=SCHEMA[0].id; touch(true); toast("Draft opened");
     }catch(_){ alert("That file is not a Post-Activation Report draft."); } };
@@ -1086,7 +1194,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02m";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02n";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
@@ -1116,6 +1224,7 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
 if(!data.sig_date) data.sig_date=new Date().toISOString().slice(0,10);
 render();
 if(Object.keys(data).length>1) document.getElementById("hdrSaved").textContent="restored";
+if(rosterWasUpdated) setTimeout(()=>toast("Team roster updated"),700);
 let rT=null;
 window.addEventListener("resize",()=>{ clearTimeout(rT); rT=setTimeout(()=>{
   SCHEMA.forEach(s=>s.fields.forEach(f=>{ if(f.t==="sig"&&visible(f)) mountSig(f.id); }));
