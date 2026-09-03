@@ -363,6 +363,17 @@ const ROLES = [
 ];
 const ROLE_FULL = Object.fromEntries(ROLES.map(r=>[r.k,r.full]));
 
+/* Display order: command, then team leaders, then ATLs, then everyone else,
+   alphabetical by surname inside each tier. Applied wherever names are shown,
+   so an imported or hand-edited roster sorts the same way as the built-in one. */
+const RANK = {cmd:0, tl:1, atl:2};
+function rankOf(p){
+  let best = 3;
+  (p.r||[]).forEach(k=>{ if(RANK[k]!==undefined && RANK[k]<best) best=RANK[k]; });
+  return best;
+}
+function byRankThenName(a,b){ return rankOf(a)-rankOf(b) || a.n.localeCompare(b.n); }
+
 /* Activation to clear. Rolls past midnight when no clear date is entered. */
 function calcDuration(){
   const st=data.act_time, et=data.end_time;
@@ -539,70 +550,74 @@ const SCHEMA = [
    --------------------------------------------------------------- */
 const ROSTER_VERSION = 3;
 const DEFAULT_ROSTER = [
+  /* Command */
   {n:"Feliciano, Armando / BPD", r:["cmd"]},
   {n:"Frederickson, Corey / BPD", r:["cmd"]},
-  {n:"Carchedi, Brian / YPD", r:["tl","op"]},
-  {n:"Giuca, Christopher / MPD", r:["atl","op"]},
-  {n:"Lanctot, Daniel / Brewster PD", r:["atl","op"]},
+  /* Team leaders */
   {n:"Aprea, Richard / YPD", r:["tl","op"]},
-  {n:"Cardoso, Newton / FPD", r:["op"]},
-  {n:"Vermette, Tyler / HPD", r:["op"]},
-  {n:"Elizondo, Minor / DPD", r:["op"]},
-  {n:"Lawler, Devin / FPD", r:["op"]},
-  {n:"Nardone, Ryan / MPD", r:["tl","op"]},
-  {n:"Lobianco, Christopher / BPD", r:["atl","op"]},
-  {n:"Couzzo, William / MPD", r:["atl","op"]},
-  {n:"Anziano, Brian / DPD", r:["op"]},
-  {n:"Brule, Ryan / YPD", r:["op"]},
-  {n:"Henderson, Alec / SPD", r:["op"]},
-  {n:"Dedinas, Benjamin / OPD", r:["op"]},
-  {n:"Roberge, Nicholas / BCSO", r:["op"]},
+  {n:"Ashe, Thomas / BCSO (Drone TL)", r:["tl","tech"]},
   {n:"Booth, Reid / Eastham PD", r:["tl","op"]},
-  {n:"Sheehan, Matthew / YPD", r:["atl","op"]},
-  {n:"Brickley, Brendan / HPD", r:["op"]},
-  {n:"Brunelli, Jeffrey / SPD", r:["op"]},
-  {n:"Cogswell, Peter / MPD", r:["op"]},
-  {n:"Mele, Andrew / BPD", r:["op"]},
-  {n:"Jurkowski, Chris / OPD", r:["op"]},
-  {n:"Sweeney, Ryan / BOPD", r:["op"]},
-  {n:"Voltolini, Samantha / YPD", r:["op"]},
-  {n:"Ruggieri, Adam / BPD", r:["tl","op"]},
-  {n:"Jackson, Spencer / BPD", r:["atl","op","tech"]},
-  {n:"Cleary, Sean / BPD", r:["op"]},
-  {n:"Atcheson, Nick / BPD", r:["op"]},
-  {n:"Brandt, Timothy / FPD", r:["op"]},
-  {n:"Franklin, Alex / FPD", r:["op"]},
-  {n:"Dow, Tyler / Brewster PD", r:["op"]},
-  {n:"McDonough, John / MPD", r:["op"]},
-  {n:"Kramer, Michael / YPD", r:["tl","k9"]},
-  {n:"Derochea, Brian / BPD", r:["k9"]},
-  {n:"Fitzpatrick, Nicholas / BCSO", r:["k9"]},
-  {n:"Herrmann, Michael / HYFD", r:["tl","tems"]},
-  {n:"George, Patrick / SFD", r:["tems"]},
-  {n:"Caruso, David / YFD", r:["atl","tems"]},
-  {n:"Amick, Michael / HYFD", r:["tems"]},
-  {n:"Hickey, Ryan / WFD", r:["tems"]},
-  {n:"Goulet, Jacob / HFD", r:["tems"]},
-  {n:"Batzinger, Peter / HFD", r:["tems"]},
-  {n:"Karter, Seth / COMMFD", r:["tems"]},
-  {n:"Montesi, Torey / MFD", r:["tems"]},
+  {n:"Carchedi, Brian / YPD", r:["tl","op"]},
   {n:"Fernandes, Kevin / BCSO", r:["tl","neg"]},
+  {n:"Herrmann, Michael / HYFD", r:["tl","tems"]},
+  {n:"Kramer, Michael / YPD", r:["tl","k9"]},
+  {n:"Nardone, Ryan / MPD", r:["tl","op"]},
+  {n:"Ruggieri, Adam / BPD", r:["tl","op"]},
+  /* Assistant team leaders */
   {n:"Assad, Michael / MPD", r:["atl","neg"]},
+  {n:"Caruso, David / YFD", r:["atl","tems"]},
+  {n:"Couzzo, William / MPD", r:["atl","op"]},
+  {n:"Giuca, Christopher / MPD", r:["atl","op"]},
+  {n:"Jackson, Spencer / BPD", r:["atl","op","tech"]},
+  {n:"Lanctot, Daniel / Brewster PD", r:["atl","op"]},
+  {n:"Lobianco, Christopher / BPD", r:["atl","op"]},
   {n:"Parache, Catarina / BPD", r:["atl","neg"]},
-  {n:"Richter, Seth / DPD", r:["neg"]},
-  {n:"Sullivan, William / DPD", r:["neg"]},
+  {n:"Sheehan, Matthew / YPD", r:["atl","op"]},
+  {n:"Smith, Matthew / BCSO (Drone ATL)", r:["atl","tech"]},
+  /* Team members */
+  {n:"Amick, Michael / HYFD", r:["tems"]},
+  {n:"Anziano, Brian / DPD", r:["op"]},
+  {n:"Atcheson, Nick / BPD", r:["op"]},
+  {n:"Batzinger, Peter / HFD", r:["tems"]},
+  {n:"Brandt, Timothy / FPD", r:["op"]},
+  {n:"Brickley, Brendan / HPD", r:["op"]},
+  {n:"Brule, Ryan / YPD", r:["op"]},
+  {n:"Brunelli, Jeffrey / SPD", r:["op"]},
+  {n:"Cardoso, Newton / FPD", r:["op"]},
+  {n:"Cleary, Sean / BPD", r:["op"]},
+  {n:"Cogswell, Peter / MPD", r:["op"]},
+  {n:"Dedinas, Benjamin / OPD", r:["op"]},
+  {n:"Derochea, Brian / BPD", r:["k9"]},
+  {n:"Dow, Tyler / Brewster PD", r:["op"]},
   {n:"Eccelston, Christopher / YPD", r:["neg"]},
-  {n:"Foley, Dave / BPD", r:["neg"]},
-  {n:"Kelsey, Christopher / BPD", r:["neg"]},
+  {n:"Elizondo, Minor / DPD", r:["op"]},
   {n:"Fernandes, Rebecca / BCSO", r:["neg"]},
-  {n:"Meila, Matthew / BPD", r:["neg"]},
+  {n:"Fitzpatrick, Nicholas / BCSO", r:["k9"]},
+  {n:"Foley, Dave / BPD", r:["neg"]},
+  {n:"Franklin, Alex / FPD", r:["op"]},
+  {n:"George, Patrick / SFD", r:["tems"]},
+  {n:"Goulet, Jacob / HFD", r:["tems"]},
+  {n:"Henderson, Alec / SPD", r:["op"]},
+  {n:"Hickey, Ryan / WFD", r:["tems"]},
+  {n:"Jurkowski, Chris / OPD", r:["op"]},
+  {n:"Karter, Seth / COMMFD", r:["tems"]},
+  {n:"Kelsey, Christopher / BPD", r:["neg"]},
   {n:"Langton, Louis / BCSO", r:["neg"]},
+  {n:"Lawler, Devin / FPD", r:["op"]},
+  {n:"MacDonald, James / PCSO (Rook)", r:["tech"]},
+  {n:"Manfredi, Anthony / BCSO (Drone)", r:["tech"]},
+  {n:"McDonough, John / MPD", r:["op"]},
+  {n:"Meila, Matthew / BPD", r:["neg"]},
+  {n:"Mele, Andrew / BPD", r:["op"]},
+  {n:"Montesi, Torey / MFD", r:["tems"]},
+  {n:"Richter, Seth / DPD", r:["neg"]},
+  {n:"Roberge, Nicholas / BCSO", r:["op"]},
   {n:"Sabila, Simon / PPD", r:["neg"]},
   {n:"Stanford, Grant / BCSO", r:["neg"]},
-  {n:"MacDonald, James / PCSO (Rook)", r:["tech"]},
-  {n:"Ashe, Thomas / BCSO (Drone TL)", r:["tl","tech"]},
-  {n:"Smith, Matthew / BCSO (Drone ATL)", r:["atl","tech"]},
-  {n:"Manfredi, Anthony / BCSO (Drone)", r:["tech"]}
+  {n:"Sullivan, William / DPD", r:["neg"]},
+  {n:"Sweeney, Ryan / BOPD", r:["op"]},
+  {n:"Vermette, Tyler / HPD", r:["op"]},
+  {n:"Voltolini, Samantha / YPD", r:["op"]}
 ];
 
 const K_DATA="ccrlec_par_current_v1", K_ROSTER="ccrlec_par_roster_v2",
@@ -783,9 +798,11 @@ function fieldHTML(f){
     const want = f.role ? [].concat(f.role) : null;
     const eligible = roster
       .filter(p => !want || !p.r || p.r.length===0 || p.r.some(k=>want.includes(k)))
+      .sort(byRankThenName)
       .map(p => p.n);
-    const pool = [...(f.extra||[]), ...eligible,
-                  ...sel.filter(n=>!eligible.includes(n) && !(f.extra||[]).includes(n))];
+    const adhoc = sel.filter(n=>!eligible.includes(n) && !(f.extra||[]).includes(n))
+                     .sort((a,b)=>a.localeCompare(b));
+    const pool = [...(f.extra||[]), ...eligible, ...adhoc];
     const q = (filters[f.id]||"").trim().toLowerCase();
     const chips = pool.map(n=>{
       const on = sel.includes(n);
@@ -1189,7 +1206,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02p";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02q";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
