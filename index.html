@@ -267,7 +267,7 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
 
 <div class="bar">
   <button id="btnSaveAs">Save report</button>
-  <button id="btnShare">Share JSON</button>
+  <button id="btnShare">Share draft</button>
   <button class="pri" id="btnPrint">Print / PDF</button>
 </div>
 
@@ -278,11 +278,11 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
   <div class="grab"></div>
   <h3>Report actions</h3>
   <p class="note">Everything stays on this device. Nothing is uploaded.</p>  <button class="mrow" data-act="open"><span class="ic">📂</span><span class="tx"><b>Open saved report</b><i>Load a report saved on this device</i></span></button>
-  <button class="mrow" data-act="saveas"><span class="ic">💾</span><span class="tx"><b>Save report as…</b><i>Keep a named copy you can reopen</i></span></button>
-  <button class="mrow" data-act="share"><span class="ic">📤</span><span class="tx"><b>Share JSON backup</b><i>Send the raw file to yourself or a teammate</i></span></button>
-  <button class="mrow" data-act="import"><span class="ic">📥</span><span class="tx"><b>Import JSON backup</b><i>Replaces what is on screen now</i></span></button>
-  <button class="mrow" data-act="copy"><span class="ic">📋</span><span class="tx"><b>Copy as text</b><i>Paste into email or your RMS narrative</i></span></button>
-  <button class="mrow" data-act="print"><span class="ic">🖨️</span><span class="tx"><b>Print / save as PDF</b><i>Clean report — blank fields are dropped</i></span></button>
+  <button class="mrow" data-act="saveas"><span class="ic">💾</span><span class="tx"><b>Save a named copy</b><i>Kept on this phone so you can reopen it later</i></span></button>
+  <button class="mrow" data-act="share"><span class="ic">📤</span><span class="tx"><b>Share a draft</b><i>Send this report to someone else, or keep a copy in Files</i></span></button>
+  <button class="mrow" data-act="import"><span class="ic">📥</span><span class="tx"><b>Open a draft</b><i>Replaces the report on screen now</i></span></button>
+  <button class="mrow" data-act="copy"><span class="ic">📋</span><span class="tx"><b>Copy as plain text</b><i>Paste into email or your RMS narrative</i></span></button>
+  <button class="mrow" data-act="print"><span class="ic">🖨️</span><span class="tx"><b>Print / save as PDF</b><i>The finished report. Blank fields are dropped.</i></span></button>
   <button class="mrow" data-act="roster"><span class="ic">👥</span><span class="tx"><b>Team roster</b><i>Names that fill the personnel pickers</i></span></button>
   <button class="mrow danger" data-act="reset"><span class="ic">🧹</span><span class="tx"><b>Clear this report</b><i>Roster and saved reports are kept</i></span></button>
   <div class="buildline">
@@ -305,7 +305,7 @@ main{padding:14px 14px 120px;max-width:760px;margin:0 auto}
 <div class="sheet" id="sheetSaves">
   <div class="grab"></div>
   <h3>Saved reports</h3>
-  <p class="note">Stored in this browser only. Share a JSON backup for anything you need to keep.</p>
+  <p class="note">Kept on this phone only. Print the PDF for anything that needs to be filed.</p>
   <div class="savelist" id="savesList"></div>
 </div>
 
@@ -712,7 +712,7 @@ function touch(rerender){
     const t=new Date();
     document.getElementById("hdrSaved").textContent = ok
       ? "saved "+t.toTimeString().slice(0,5)
-      : "storage full — share a backup";
+      : "storage full — share a draft now";
   },250);
   if(rerender) render();
 }
@@ -871,7 +871,7 @@ function reportLabel(){
   return n || (data.act_date ? "Activation "+data.act_date : "Untitled report");
 }
 function saveAs(){
-  const nm=(prompt("Save this report as:", reportLabel())||"").trim(); if(!nm) return;
+  const nm=(prompt("Name this copy:", reportLabel())||"").trim(); if(!nm) return;
   saves[nm]={ savedAt:new Date().toISOString(), data:JSON.parse(JSON.stringify(data)) };
   store(K_SAVES,saves) ? toast("Saved — "+nm) : toast("Storage full");
 }
@@ -883,7 +883,7 @@ function drawSaves(){
     return `<div class="saveitem"><button data-open="${esc(k)}"><b>${esc(k)}</b>
       <i>${isNaN(d)?"":d.toLocaleString()}</i></button>
       <button class="del" data-sdel="${esc(k)}">✕</button></div>`;
-  }).join("") : `<div class="empty">Nothing saved yet. Use “Save report as…”.</div>`;
+  }).join("") : `<div class="empty">Nothing saved yet. Use “Save a named copy”.</div>`;
 }
 document.getElementById("savesList").addEventListener("click",e=>{
   const o=e.target.closest("[data-open]"), d=e.target.closest("[data-sdel]");
@@ -917,7 +917,7 @@ async function shareJSON(){
   const url=URL.createObjectURL(new Blob([txt],{type:"application/json"}));
   const a=document.createElement("a"); a.href=url; a.download=fname("json"); a.click();
   setTimeout(()=>URL.revokeObjectURL(url),1500);
-  toast("Backup downloaded");
+  toast("Draft saved to Files");
 }
 document.getElementById("fileIn").addEventListener("change",e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -936,13 +936,13 @@ document.getElementById("fileIn").addEventListener("change",e=>{
         roster=inRoster; store(K_ROSTER,roster); render(); toast("Roster imported"); return;
       }
 
-      if(!confirm("Import will replace the report currently on screen. Continue?")) return;
+      if(!confirm("Opening this draft will replace the report currently on screen. Continue?")) return;
       data=p.data;
-      if(hasRoster && confirm("This backup also contains a roster. Replace the roster on this device?")){
+      if(hasRoster && confirm("This draft also contains a team roster. Replace the roster on this phone?")){
         roster=inRoster; store(K_ROSTER,roster);
       }
-      openSec=SCHEMA[0].id; touch(true); toast("Backup imported");
-    }catch(_){ alert("That file is not a Post-Activation Report backup."); } };
+      openSec=SCHEMA[0].id; touch(true); toast("Draft opened");
+    }catch(_){ alert("That file is not a Post-Activation Report draft."); } };
   r.readAsText(f); e.target.value="";
 });
 
@@ -1036,7 +1036,7 @@ function toast(msg){
 /* ============================================================
    BUILD STAMP + OFFLINE INSTALL
    ============================================================ */
-const BUILD = "2026-09-02i";   /* bump when publishing so the team can confirm versions */
+const BUILD = "2026-09-02j";   /* bump when publishing so the team can confirm versions */
 document.getElementById("buildStamp").textContent = "build " + BUILD;
 
 const offEl = document.getElementById("offlineStamp");
